@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 from collections import defaultdict
 from pathlib import Path
 from typing import Any
@@ -33,13 +34,15 @@ def _load_jsonl(path: Path) -> list[dict[str, Any]]:
 def _box(record: dict[str, Any], path: Path, row: int) -> PersonDetection:
     values = record.get("bbox_xyxy")
     if (not isinstance(values, list) or len(values) != 4
-            or any(not isinstance(v, (int, float)) for v in values)):
+            or any(isinstance(v, bool) or not isinstance(v, (int, float)) for v in values)):
         raise ValueError(f"{path}: row {row}: bbox_xyxy must contain four numbers")
     x1, y1, x2, y2 = (float(v) for v in values)
+    if not all(math.isfinite(value) for value in (x1, y1, x2, y2)):
+        raise ValueError(f"{path}: row {row}: bbox_xyxy values must be finite")
     if x2 <= x1 or y2 <= y1:
         raise ValueError(f"{path}: row {row}: bbox_xyxy must have positive area")
     confidence = record.get("confidence", 1.0)
-    if not isinstance(confidence, (int, float)) or not 0 <= confidence <= 1:
+    if isinstance(confidence, bool) or not isinstance(confidence, (int, float)) or not math.isfinite(confidence) or not 0 <= confidence <= 1:
         raise ValueError(f"{path}: row {row}: confidence must be between 0 and 1")
     return PersonDetection(x1, y1, x2, y2, float(confidence))
 
@@ -62,6 +65,8 @@ def evaluate_jsonl(predictions_path: Path, ground_truth_path: Path,
     predictions: dict[tuple[str, int], list[PersonDetection]] = defaultdict(list)
     ground_truth: dict[tuple[str, int], list[PersonDetection]] = defaultdict(list)
     annotated_frames: set[tuple[str, int]] = set()
+    frames_with_boxes: set[tuple[str, int]] = set()
+    explicitly_empty_frames: set[tuple[str, int]] = set()
 
     for row, record in enumerate(_load_jsonl(predictions_path), 1):
         if record.get("type", "person_detection") != "person_detection":
@@ -73,12 +78,20 @@ def evaluate_jsonl(predictions_path: Path, ground_truth_path: Path,
         key = _frame_key(record, ground_truth_path, row)
         annotated_frames.add(key)
         if record.get("empty_frame") is True:
+            explicitly_empty_frames.add(key)
             ground_truth.setdefault(key, [])
             continue
+        frames_with_boxes.add(key)
         ground_truth[key].append(_box(record, ground_truth_path, row))
 
     if not annotated_frames:
         raise ValueError("ground-truth file contains no annotated frames")
+    conflicting_empty_frames = frames_with_boxes & explicitly_empty_frames
+    if conflicting_empty_frames:
+        video_id, frame_index = sorted(conflicting_empty_frames)[0]
+        raise ValueError(
+            f"ground-truth frame {video_id!r}:{frame_index} mixes empty_frame and box rows"
+        )
 
     keys = annotated_frames
     tp = fp = fn = 0
