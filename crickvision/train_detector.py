@@ -94,7 +94,7 @@ def _collate(batch):
 
 def _make_model(pretrained: bool = True):
     weights = FasterRCNN_ResNet50_FPN_Weights.DEFAULT if pretrained else None
-    model = fasterrcnn_resnet50_fpn(weights=weights, weights_backbone=None if pretrained else None)
+    model = fasterrcnn_resnet50_fpn(weights=weights, weights_backbone=None)
     features = model.roi_heads.box_predictor.cls_score.in_features
     model.roi_heads.box_predictor = FastRCNNPredictor(features, 2)
     return model
