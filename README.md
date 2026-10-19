@@ -277,6 +277,10 @@ CrickVision is an experimental research/development project. Outputs may be inco
 CrickVision builds on the open-source computer-vision ecosystem. All third-party projects, datasets, and model assets must be credited according to their individual terms.
 
 
+## Project status
+
+See [docs/STATUS.md](docs/STATUS.md) for implemented capabilities, unverified areas, and the next release gates.
+
 ## Deep research and product specification
 
 The expanded research document defines the product scope, module requirements, architecture, result schemas, dataset strategy, evaluation metrics, licensing risks, and implementation priorities. The repository also includes a [model card](docs/model-card.md), [data policy](docs/data-policy.md), and [annotation guidelines](datasets/annotation_guidelines/README.md):
