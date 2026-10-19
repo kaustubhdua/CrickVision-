@@ -7,6 +7,9 @@ on:
     branches: [main]
 permissions:
   contents: read
+concurrency:
+  group: crickvision-ci-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   test:
     runs-on: ubuntu-latest
