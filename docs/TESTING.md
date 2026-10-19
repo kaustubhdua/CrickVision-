@@ -81,3 +81,21 @@ crickvision-export --input runs/detections.jsonl --output runs/detections.csv
 ```
 
 Rows without `video_id` use the shared ID `default`; ensure you use distinct `video_id` values if combining multiple videos. Every annotated ground-truth box should be a separate row. Frames with no visible people should be represented in the annotation protocol; because the current format uses box rows, use a separate frame index manifest to record exhaustive empty frames and ensure they were reviewed. The evaluator reports aggregate greedy IoU precision/recall/F1 and per-frame results. It is not AP/mAP and should not be compared to published COCO scores.
+
+## Fine-tune a person detector
+
+Create a reviewed image manifest with one row per image. Paths are relative to the manifest. Each row must contain a split and a list of person boxes; an empty list means a reviewed image with no visible target people.
+
+```json
+{"image_path":"frames/train-001.jpg","split":"train","boxes_xyxy":[[40,25,95,240]]}
+{"image_path":"frames/validation-001.jpg","split":"validation","boxes_xyxy":[]}
+```
+
+Keep all frames from one match/source in a single split. The trainer requires both train and validation rows:
+
+```bash
+crickvision-train-detector --manifest datasets/annotations/person-boxes.jsonl --output models/person-finetuned.pt --epochs 5 --batch-size 2
+python -m crickvision.cli --input path/to/clip.mp4 --output runs/fine-tuned.mp4 --weights models/person-finetuned.pt
+```
+
+The training command fine-tunes Faster R-CNN to a single target class, person. It does not train a ball detector or infer cricket roles. The checkpoint is selected by validation loss, which is only a training diagnostic; choose final models using a separate held-out match and the benchmark workflow. The default initial weights may download from Torchvision. Ensure your dataset and the pretrained weights' terms permit your intended use.
