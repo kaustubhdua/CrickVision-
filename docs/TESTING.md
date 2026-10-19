@@ -80,7 +80,7 @@ crickvision-benchmark --predictions runs/detections.jsonl --ground-truth dataset
 crickvision-export --input runs/detections.jsonl --output runs/detections.csv
 ```
 
-Rows without `video_id` use the shared ID `default`; ensure you use distinct `video_id` values if combining multiple videos. Every annotated ground-truth box should be a separate row. Frames with no visible people should be represented in the annotation protocol; because the current format uses box rows, use a separate frame index manifest to record exhaustive empty frames and ensure they were reviewed. The evaluator reports aggregate greedy IoU precision/recall/F1 and per-frame results. It is not AP/mAP and should not be compared to published COCO scores.
+Rows without `video_id` use the shared ID `default`; ensure you use distinct `video_id` values if combining multiple videos. Every annotated ground-truth box should be a separate row. Frames with no visible people can be represented with an explicit row containing video_id, frame_index, and empty_frame=true. Only include frames that were exhaustively reviewed. The evaluator reports aggregate greedy IoU precision/recall/F1 and per-frame results. It is not AP/mAP and should not be compared to published COCO scores.
 
 ## Fine-tune a person detector
 
