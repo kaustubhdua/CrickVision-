@@ -24,4 +24,4 @@ jobs:
       - run: crickvision --help
       - run: crickvision-manifest --help
       - run: crickvision-benchmark --help
-      - run: crickvision-export --help
+      - run: crickvision-export --help\n      - run: crickvision-train-detector --help
