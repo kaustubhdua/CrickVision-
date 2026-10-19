@@ -85,6 +85,25 @@ Optional team-colour hints can be enabled with a user-created JSON config. HSV r
 
 Run with `--team-colors configs/team-colors.json`. Each detection JSONL record then includes `team` and `team_colour_fraction`; ambiguous or weak colour evidence is labelled `Unknown`. The HSV hue channel uses OpenCV's 0–179 range. Do not use these labels as official team identity without manual review.
 
+
+### Fine-tune a person detector
+
+Once you have a rights-cleared, manually labelled image dataset, prepare a JSONL manifest with one row per image:
+
+```json
+{"image_path":"frames/train-001.jpg","split":"train","boxes_xyxy":[[40,25,95,240]]}
+{"image_path":"frames/validation-001.jpg","split":"validation","boxes_xyxy":[]}
+```
+
+Paths are relative to the manifest. Keep entire matches/sources in one split. Then fine-tune the person detector and use the resulting local checkpoint:
+
+```bash
+crickvision-train-detector --manifest datasets/annotations/person-boxes.jsonl --output models/person-finetuned.pt --epochs 5
+python -m crickvision.cli --input match.mp4 --output runs/fine-tuned.mp4 --weights models/person-finetuned.pt
+```
+
+This training workflow learns the single person class; it does not train a ball detector or infer cricket events. Validation loss is only a training diagnostic. Evaluate the selected checkpoint on a separate held-out match before reporting performance. The initial Torchvision weights may be downloaded when training starts.
+
 ## Architecture roadmap
 
 ### Phase 0 — Foundations and reproducibility
@@ -100,6 +119,7 @@ Run with `--team-colors configs/team-colors.json`. Each detection JSONL record t
 - [x] Build a basic video manifest validator (source, match/clip ID, rights status, split); timestamp/resolution enrichment remains future work.
 - [ ] Evaluate person recall separately for wide shots, pitch views, close-ups, day/night, and small distant players.
 - [x] Add a heuristic shot-boundary detector; shot/view labels and benchmark validation remain open.
+- [x] Add a baseline person-detector fine-tuning command and checkpoint loading.
 - [ ] Add model configuration and structured logs.
 - **Exit gate:** a reproducible benchmark report on held-out matches; no performance claims without measured results.
 
@@ -244,7 +264,7 @@ CrickVision builds on the open-source computer-vision ecosystem. All third-party
 
 ## Deep research and product specification
 
-The expanded research document defines the product scope, module requirements, architecture, result schemas, dataset strategy, evaluation metrics, licensing risks, and implementation priorities:
+The expanded research document defines the product scope, module requirements, architecture, result schemas, dataset strategy, evaluation metrics, licensing risks, and implementation priorities. The repository also includes a [model card](docs/model-card.md), [data policy](docs/data-policy.md), and [annotation guidelines](datasets/annotation_guidelines/README.md):
 
 - [Read the research and product specification](docs/research-and-product-spec.md)
 
