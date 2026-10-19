@@ -45,3 +45,27 @@ def test_timestamp_uses_decoder_position_when_available():
             return 480.0
 
     assert _timestamp_ms(Capture(), 12, 25.0) == 480.0
+
+import json
+
+from crickvision.cli import load_team_colors
+
+
+def test_load_team_colours(tmp_path):
+    config = tmp_path / "teams.json"
+    config.write_text(json.dumps({"teams": [
+        {"name": "Blue", "hsv_lower": [90, 80, 40], "hsv_upper": [130, 255, 255]}
+    ]}), encoding="utf-8")
+    teams = load_team_colors(config)
+    assert len(teams) == 1
+    assert teams[0].name == "Blue"
+    assert teams[0].hsv_lower == (90, 80, 40)
+
+
+def test_reject_invalid_team_colour_range(tmp_path):
+    config = tmp_path / "teams.json"
+    config.write_text(json.dumps({"teams": [
+        {"name": "Bad", "hsv_lower": [120, 0, 0], "hsv_upper": [90, 255, 255]}
+    ]}), encoding="utf-8")
+    with pytest.raises(SystemExit, match="lower HSV"):
+        load_team_colors(config)
