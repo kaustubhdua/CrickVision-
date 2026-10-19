@@ -84,11 +84,11 @@ Rows without `video_id` use the shared ID `default`; ensure you use distinct `vi
 
 ## Fine-tune a person detector
 
-Create a reviewed image manifest with one row per image. Paths are relative to the manifest. Each row must contain a split and a list of person boxes; an empty list means a reviewed image with no visible target people.
+Create a reviewed image manifest with one row per image. Paths are relative to the manifest. Each row must contain match_id, a split, and a list of person boxes; an empty list means a reviewed image with no visible target people. The trainer rejects match-level split leakage.
 
 ```json
-{"image_path":"frames/train-001.jpg","split":"train","boxes_xyxy":[[40,25,95,240]]}
-{"image_path":"frames/validation-001.jpg","split":"validation","boxes_xyxy":[]}
+{"image_path":"frames/train-001.jpg","match_id":"match-001","split":"train","boxes_xyxy":[[40,25,95,240]]}
+{"image_path":"frames/validation-001.jpg","match_id":"match-002","split":"validation","boxes_xyxy":[]}
 ```
 
 Keep all frames from one match/source in a single split. The trainer requires both train and validation rows:
