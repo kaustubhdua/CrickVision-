@@ -32,8 +32,8 @@ def test_project_bbox_uses_bottom_centre():
 
 def test_invalid_calibration_rejects_projection():
     result = estimate_homography(
-        [[0, 0], [100, 0], [100, 100], [0, 100]],
-        [[0, 0], [10, 0], [10, 10], [0, 30]],
+        [[0, 0], [100, 0], [100, 100], [0, 100], [50, 50]],
+        [[0, 0], [10, 0], [10, 10], [0, 10], [5, 20]],
         max_reprojection_error=0.00001,
     )
     assert not result.valid
