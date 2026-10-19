@@ -91,7 +91,7 @@ Run with `--team-colors configs/team-colors.json`. Each detection JSONL record t
 
 ### Optional manual field calibration
 
-If you have at least four corresponding points from a fixed camera view on the same ground plane, create a calibration config based on [the example](configs/calibration.example.json), replacing the example coordinates with measured correspondences. Ground coordinates can use any consistent unit; the error threshold uses those same units.
+If you have at least five corresponding points from a fixed camera view on the same ground plane, create a calibration config based on [the example](configs/calibration.example.json), replacing the example coordinates with measured correspondences. Ground coordinates can use any consistent unit; the error threshold uses those same units.
 
 ```bash
 python -m crickvision.cli --input match.mp4 --output runs/calibrated.mp4 --calibration configs/calibration.json
