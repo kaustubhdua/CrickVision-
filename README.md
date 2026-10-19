@@ -225,3 +225,12 @@ CrickVision is an experimental research/development project. Outputs may be inco
 ## Acknowledgements
 
 CrickVision builds on the open-source computer-vision ecosystem. All third-party projects, datasets, and model assets must be credited according to their individual terms.
+
+
+## Deep research and product specification
+
+The expanded research document defines the product scope, module requirements, architecture, result schemas, dataset strategy, evaluation metrics, licensing risks, and implementation priorities:
+
+- [Read the research and product specification](docs/research-and-product-spec.md)
+
+It distinguishes the current generic person-detection baseline from planned features and sets release gates so we do not claim tracking, team classification, ball trajectories, or accuracy before those capabilities are implemented and benchmarked.
