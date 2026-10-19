@@ -1,0 +1,33 @@
+name: Feature request
+description: Propose a scoped improvement with a clear use case.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: What user problem or research need does this address?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behaviour
+      description: Describe the intended inputs, outputs and failure states.
+    validations:
+      required: true
+  - type: textarea
+    id: evaluation
+    attributes:
+      label: Evaluation plan
+      description: Explain how correctness will be tested without unsupported accuracy claims.
+    validations:
+      required: true
+  - type: checkboxes
+    id: data_rights
+    attributes:
+      label: Data and licensing
+      options:
+        - label: This request does not require committing unlicensed footage or assets.
+          required: true
