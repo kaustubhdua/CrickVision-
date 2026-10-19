@@ -14,3 +14,14 @@ datasets/raw/
 *.mov
 *.mkv
 .env
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.safetensors
+.streamlit/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
