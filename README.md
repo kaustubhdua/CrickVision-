@@ -5,7 +5,7 @@
 
 CrickVision is a local-first project to detect and track cricket players, classify teams, map field positions, and progressively analyse the ball and delivery events from video. The long-term goal is a reproducible, well-tested toolkit for developers, researchers, coaches, and cricket analysts.
 
-> **Current status: experimental prototype (v0.2).** The default pipeline runs a general-purpose pretrained person detector, heuristic shot-cut detection, and optional IoU tracking. An optional HSV kit-colour hint can be enabled with user-provided ranges, but it is not a learned classifier and has not been validated on match footage. There is no cricket-trained detector, ball tracking, calibrated field mapping, event intelligence, or measured cricket benchmark. Do not treat outputs as official match statistics.
+> **Current status: experimental prototype (v0.3).** The default pipeline runs a general-purpose pretrained person detector, heuristic shot-cut detection, and optional IoU tracking. An optional HSV kit-colour hint can be enabled with user-provided ranges, but it is not a learned classifier and has not been validated on match footage. There is no cricket-trained detector, ball tracking, calibrated field mapping, event intelligence, or measured cricket benchmark. Do not treat outputs as official match statistics.
 
 ## Project goals
 
