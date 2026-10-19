@@ -11,6 +11,7 @@ from PIL import Image
 from crickvision.detector import PersonDetector
 from crickvision.shot import ShotBoundaryDetector
 from crickvision.tracker import IoUTracker
+from crickvision.team import TeamColourConfig, classify_team_colour
 
 
 def parse_args() -> argparse.Namespace:
@@ -28,6 +29,8 @@ def parse_args() -> argparse.Namespace:
                         help="Disable experimental IoU tracking")
     parser.add_argument("--shot-threshold", type=float, default=0.42,
                         help="Frame-difference cut threshold")
+    parser.add_argument("--team-colors", type=Path, default=None,
+                        help="Optional JSON config with team names and HSV lower/upper ranges")
     return parser.parse_args()
 
 
@@ -42,6 +45,38 @@ def validate_paths(input_path: Path, output_path: Path, detections_path: Path) -
         raise SystemExit("Input video and JSONL detections must be different files")
     if output_resolved == detections_resolved:
         raise SystemExit("Annotated video and JSONL detections must be different files")
+
+
+
+def load_team_colors(path: Path | None) -> tuple[TeamColourConfig, ...]:
+    """Load optional user-defined HSV kit ranges from a JSON file."""
+    if path is None:
+        return ()
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise SystemExit(f"Could not read team colour config {path}: {exc}") from exc
+    if not isinstance(payload, dict) or not isinstance(payload.get("teams"), list):
+        raise SystemExit("Team colour config must be a JSON object with a 'teams' array")
+    teams = []
+    names = set()
+    for index, item in enumerate(payload["teams"]):
+        if not isinstance(item, dict):
+            raise SystemExit(f"Team colour entry {index} must be an object")
+        name, lower, upper = item.get("name"), item.get("hsv_lower"), item.get("hsv_upper")
+        if not isinstance(name, str) or not name.strip() or name in names:
+            raise SystemExit(f"Team colour entry {index} needs a unique non-empty name")
+        if not isinstance(lower, list) or not isinstance(upper, list) or len(lower) != 3 or len(upper) != 3:
+            raise SystemExit(f"Team colour entry {index} needs 3-value hsv_lower and hsv_upper arrays")
+        if any(not isinstance(v, int) or v < 0 or v > 255 for v in lower + upper):
+            raise SystemExit(f"Team colour entry {index} HSV values must be integers from 0 to 255")
+        if any(a > b for a, b in zip(lower, upper)):
+            raise SystemExit(f"Team colour entry {index} has a lower HSV value above its upper value")
+        names.add(name)
+        teams.append(TeamColourConfig(name.strip(), tuple(lower), tuple(upper)))
+    if not teams:
+        raise SystemExit("Team colour config must contain at least one team")
+    return tuple(teams)
 
 
 def _timestamp_ms(capture: cv2.VideoCapture, frame_index: int, fps: float) -> float:
@@ -65,6 +100,7 @@ def main() -> None:
 
     detections_path = args.detections or Path(str(args.output) + ".jsonl")
     validate_paths(args.input, args.output, detections_path)
+    team_colors = load_team_colors(args.team_colors)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     detections_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -139,6 +175,17 @@ def main() -> None:
                             ],
                             "confidence": detection.confidence,
                         }
+                        if team_colors:
+                            team_name, team_score = classify_team_colour(
+                                frame, (detection.x1, detection.y1, detection.x2, detection.y2),
+                                team_colors,
+                            )
+                            record.update({
+                                "team": team_name,
+                                "team_colour_fraction": round(team_score, 6),
+                            })
+                            if team_name != "Unknown":
+                                label = f"{team_name} {label}"
                         if track is not None:
                             label = f"ID {track.track_id} {detection.confidence:.2f}"
                             record.update({"track_id": track.track_id, "track_age": track.age})
