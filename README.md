@@ -133,7 +133,7 @@ This training workflow learns the single person class; it does not train a ball 
 - [x] Create repository structure and project scope.
 - [x] Add generic pretrained person-detection baseline and video CLI.
 - [x] Export timestamped detections as JSONL.
-- [x] Add automated unit tests and CI configuration (execution still needs a green Actions run).
+- [x] Add automated unit tests and CI configuration (green Python 3.10–3.12 CI verified on commit `935afeb3feade57208c9effbc4159e8e2b26c44b`).
 - [ ] Add dependency lockfile, trained-model provenance, and a complete software bill of materials.
 - [ ] Establish a small, legally usable, manually labelled cricket benchmark.
 
@@ -199,7 +199,7 @@ This training workflow learns the single person class; it does not train a ball 
 ### Phase 8 — Performance, release, and community
 - [ ] Profile CPU throughput and peak memory on documented hardware.
 - [ ] Evaluate optional ONNX Runtime/GPU acceleration without changing output contracts.
-- [x] Add CI configuration, Ruff checks, issue templates, contributor guidance, release checklist, and changelog; green CI execution remains to be confirmed.
+- [x] Add CI configuration, Ruff checks, issue templates, contributor guidance, release checklist, and changelog; green CI passed for commit `935afeb3feade57208c9effbc4159e8e2b26c44b`; future changes still require a fresh run.
 - [ ] Add static type checking and a complete release/publishing workflow.
 - [x] Publish a baseline model card, data policy, annotation guidelines, and third-party notices; trained-checkpoint hashes and full SBOM remain pending.
 - [x] Add a benchmark runner and synthetic regression fixtures; a rights-cleared real-cricket benchmark remains pending.
