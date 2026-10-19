@@ -1,0 +1,1 @@
+Test CLI argument validation and parser defaults
