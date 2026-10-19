@@ -6,6 +6,8 @@ build-backend = "setuptools.build_meta"
 name = "crickvision"
 version = "0.2.0"
 description = "Local-first computer vision toolkit for cricket video analysis"
+license = "MIT"
+classifiers = ["License :: OSI Approved :: MIT License", "Programming Language :: Python :: 3"]
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = ["torch>=2.2", "torchvision>=0.17", "opencv-python-headless>=4.9", "Pillow>=10.0", "numpy>=1.24"]
@@ -17,6 +19,7 @@ dashboard = ["streamlit>=1.35"]
 [project.scripts]
 crickvision = "crickvision.cli:main"
 crickvision-manifest = "crickvision.manifest:main"
+crickvision-benchmark = "crickvision.benchmark:main"
 
 [tool.setuptools.packages.find]
 include = ["crickvision*"]
