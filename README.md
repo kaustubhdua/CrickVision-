@@ -283,3 +283,17 @@ streamlit run crickvision/dashboard.py
 The dashboard runs processing as a local subprocess. It is intended for a single trusted user, not public multi-user hosting. Large video uploads can consume substantial RAM, disk and compute.
 
 For the current testing instructions and release gates, see [docs/TESTING.md](docs/TESTING.md).
+
+
+## Dataset governance and evaluation utilities
+
+Before building a benchmark, define a JSONL manifest and validate it:
+
+```bash
+crickvision-manifest datasets/manifests/manifest.jsonl
+# or: python -m crickvision.manifest datasets/manifests/manifest.jsonl
+```
+
+The validator checks required provenance fields, duplicate clip IDs, supported split labels and rights-status warnings. It cannot grant permission to use a dataset; verify source terms independently. See [manifest guidance](datasets/manifests/README.md).
+
+A small IoU-matching precision/recall/F1 helper is available in `crickvision.metrics` for labelled frame-level detections. It is not a substitute for COCO AP/mAP or full MOT metrics. Do not report benchmark scores until labels, match-level splits, and evaluation procedures are independently reviewed.
