@@ -49,3 +49,16 @@ def test_benchmark_rejects_missing_ground_truth_boxes(tmp_path):
     write_jsonl(gt, [{"frame_index": 0, "bbox_xyxy": [1, 1, 0, 0]}])
     with pytest.raises(ValueError, match="positive area"):
         evaluate_jsonl(pred, gt)
+
+def test_benchmark_counts_false_positives_on_empty_annotated_frame(tmp_path):
+    pred = tmp_path / "pred.jsonl"
+    gt = tmp_path / "gt.jsonl"
+    write_jsonl(pred, [
+        {"type": "person_detection", "frame_index": 2, "bbox_xyxy": [0, 0, 10, 10]}
+    ])
+    write_jsonl(gt, [{"frame_index": 2, "empty_frame": True}])
+    report = evaluate_jsonl(pred, gt)
+    assert report["annotated_frames"] == 1
+    assert report["false_positives"] == 1
+    assert report["false_negatives"] == 0
+    assert report["precision"] == 0.0
