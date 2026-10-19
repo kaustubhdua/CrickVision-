@@ -138,6 +138,7 @@ def main() -> None:
     tracker = IoUTracker()
     shot_detector = ShotBoundaryDetector(threshold=args.shot_threshold)
     frame_index = processed = cuts = 0
+    shot_id = 0
     try:
         with detections_path.open("w", encoding="utf-8") as output:
             while True:
@@ -149,8 +150,12 @@ def main() -> None:
                 if is_cut:
                     tracker.reset()
                     cuts += 1
+                    shot_id += 1
                     output.write(json.dumps({
+                        "schema_version": 1,
+                        "video_id": args.input.stem,
                         "type": "shot_boundary",
+                        "shot_id": shot_id,
                         "frame_index": frame_index,
                         "timestamp_ms": round(timestamp_ms, 3),
                         "score": round(cut_score, 6),
@@ -172,7 +177,10 @@ def main() -> None:
                         track = track_by_detection.get(id(detection))
                         label = f"person {detection.confidence:.2f}"
                         record = {
+                            "schema_version": 1,
+                            "video_id": args.input.stem,
                             "type": "person_detection",
+                            "shot_id": shot_id,
                             "frame_index": frame_index,
                             "timestamp_ms": round(timestamp_ms, 3),
                             "class": "person",
