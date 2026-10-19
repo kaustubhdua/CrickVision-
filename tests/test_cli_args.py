@@ -1,8 +1,14 @@
+import json
 import sys
 
 import pytest
 
-from crickvision.cli import _timestamp_ms, parse_args, validate_paths
+from crickvision.cli import (
+    _timestamp_ms,
+    load_team_colors,
+    parse_args,
+    validate_paths,
+)
 
 
 def test_parser_defaults(monkeypatch):
@@ -45,11 +51,6 @@ def test_timestamp_uses_decoder_position_when_available():
             return 480.0
 
     assert _timestamp_ms(Capture(), 12, 25.0) == 480.0
-
-import json
-
-from crickvision.cli import load_team_colors
-
 
 def test_load_team_colours(tmp_path):
     config = tmp_path / "teams.json"
