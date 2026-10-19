@@ -12,10 +12,9 @@ from crickvision.detector import PersonDetection
 class FakeCapture:
     def __init__(self, _path):
         self.index = 0
-        self.frames = [
-            np.zeros((30, 40, 3), dtype=np.uint8),
-            np.full((30, 40, 3), 255, dtype=np.uint8),
-        ]
+        first = np.zeros((30, 40, 3), dtype=np.uint8)
+        cv2.circle(first, (20, 15), 4, (255, 255, 255), -1)
+        self.frames = [first, np.full((30, 40, 3), 255, dtype=np.uint8)]
 
     def isOpened(self):
         return True
@@ -77,6 +76,7 @@ def test_cli_end_to_end_with_synthetic_frames(tmp_path, monkeypatch):
     monkeypatch.setattr(sys, "argv", [
         "crickvision", "--input", str(source), "--output", str(output),
         "--detections", str(detections), "--calibration", str(calibration),
+        "--ball-candidates",
     ])
     monkeypatch.setattr(cv2, "VideoCapture", FakeCapture)
     monkeypatch.setattr(cv2, "VideoWriter", lambda *args: writer)
@@ -90,10 +90,14 @@ def test_cli_end_to_end_with_synthetic_frames(tmp_path, monkeypatch):
     people = [record for record in records if record["type"] == "person_detection"]
     cuts = [record for record in records if record["type"] == "shot_boundary"]
     calibration_records = [record for record in records if record["type"] == "calibration"]
+    ball_records = [record for record in records if record["type"] == "ball_candidate"]
     assert len(writer.frames) == 2
     assert len(people) == 2
     assert len(cuts) == 1
     assert len(calibration_records) == 1
+    assert len(ball_records) == 1
+    assert ball_records[0]["status"] == "unverified_candidate"
+    assert ball_records[0]["center_xy"] == pytest.approx([20.0, 15.0], abs=2)
     assert people[0]["ground_xy"] == pytest.approx([7.0, 22.0])
     assert people[0]["video_id"] == "synthetic"
     assert people[0]["shot_id"] == 0
