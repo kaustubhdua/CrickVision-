@@ -16,7 +16,8 @@ Package version: 0.3.0
 ## Not yet implemented or verified
 
 - No cricket-specific checkpoint has been trained because no rights-cleared labelled cricket dataset was supplied or added.
-- No ball detector, ball trajectory reconstruction, delivery/event inference, automatic pitch/landmark detector, role classifier, or cross-shot identity re-identification.
+- No trained or validated ball detector or trajectory reconstruction. An opt-in Hough-circle candidate proposer and nearest-neighbour candidate tracklets are available as an annotation aid only.
+- No delivery/event inference, automatic pitch/landmark detector, role classifier, or cross-shot identity re-identification.
 - No track-level team aggregation or manual correction UI.
 - No measured benchmark on real cricket footage; synthetic tests only test software behavior.
 - No confirmed green CI run. The connected GitHub status response returned no check statuses/workflow runs, so the current branch's tests must be verified in GitHub Actions.
