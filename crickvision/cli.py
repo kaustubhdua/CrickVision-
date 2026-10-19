@@ -12,6 +12,7 @@ from crickvision.detector import PersonDetector
 from crickvision.shot import ShotBoundaryDetector
 from crickvision.tracker import IoUTracker
 from crickvision.team import TeamColourConfig, classify_team_colour
+from crickvision.calibration import load_calibration_config, project_bbox_footpoint
 
 
 def parse_args() -> argparse.Namespace:
@@ -33,6 +34,8 @@ def parse_args() -> argparse.Namespace:
                         help="Frame-difference cut threshold")
     parser.add_argument("--team-colors", type=Path, default=None,
                         help="Optional JSON config with team names and HSV lower/upper ranges")
+    parser.add_argument("--calibration", type=Path, default=None,
+                        help="Optional manual planar homography config for ground coordinates")
     return parser.parse_args()
 
 
@@ -107,6 +110,10 @@ def main() -> None:
     detections_path = args.detections or Path(str(args.output) + ".jsonl")
     validate_paths(args.input, args.output, detections_path)
     team_colors = load_team_colors(args.team_colors)
+    try:
+        calibration = load_calibration_config(args.calibration) if args.calibration else None
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from exc
     args.output.parent.mkdir(parents=True, exist_ok=True)
     detections_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -141,6 +148,17 @@ def main() -> None:
     shot_id = 0
     try:
         with detections_path.open("w", encoding="utf-8") as output:
+            if calibration is not None:
+                output.write(json.dumps({
+                    "schema_version": 1,
+                    "video_id": args.input.stem,
+                    "type": "calibration",
+                    "valid": calibration.valid,
+                    "reprojection_error": calibration.reprojection_error,
+                    "point_count": calibration.point_count,
+                    "ground_coordinate_system": "user_defined_planar",
+                    "image_to_ground_homography": calibration.matrix.tolist(),
+                }) + "\n")
             while True:
                 ok, frame = capture.read()
                 if not ok:
@@ -189,6 +207,13 @@ def main() -> None:
                             ],
                             "confidence": detection.confidence,
                         }
+                        if calibration is not None:
+                            ground_x, ground_y = project_bbox_footpoint(
+                                calibration,
+                                (detection.x1, detection.y1, detection.x2, detection.y2),
+                            )
+                            record["ground_xy"] = [ground_x, ground_y]
+                            record["ground_coordinate_system"] = "user_defined_planar"
                         if team_colors:
                             team_name, team_score = classify_team_colour(
                                 frame, (detection.x1, detection.y1, detection.x2, detection.y2),
