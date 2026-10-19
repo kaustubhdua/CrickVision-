@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "crickvision"
-version = "0.2.0"
+version = "0.3.0"
 description = "Local-first computer vision toolkit for cricket video analysis"
 license = "MIT"
 classifiers = ["License :: OSI Approved :: MIT License", "Programming Language :: Python :: 3"]
