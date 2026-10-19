@@ -12,8 +12,8 @@ from crickvision.calibration import (
 
 
 def test_homography_projects_synthetic_ground_points():
-    image_points = [[0, 0], [100, 0], [100, 100], [0, 100]]
-    ground_points = [[0, 0], [10, 0], [10, 10], [0, 10]]
+    image_points = [[0, 0], [100, 0], [100, 100], [0, 100], [50, 50]]
+    ground_points = [[0, 0], [10, 0], [10, 10], [0, 10], [5, 5]]
     result = estimate_homography(image_points, ground_points, max_reprojection_error=0.01)
     assert result.valid
     assert result.reprojection_error < 1e-6
@@ -50,7 +50,7 @@ def test_calibration_config_round_trip(tmp_path):
     }), encoding="utf-8")
     result = load_calibration_config(config)
     assert result.valid
-    assert result.point_count == 4
+    assert result.point_count == 5
 
 
 def test_rejects_too_few_calibration_points():
