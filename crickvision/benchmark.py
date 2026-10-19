@@ -61,6 +61,7 @@ def evaluate_jsonl(predictions_path: Path, ground_truth_path: Path,
         raise ValueError("IoU threshold must be between 0 and 1")
     predictions: dict[tuple[str, int], list[PersonDetection]] = defaultdict(list)
     ground_truth: dict[tuple[str, int], list[PersonDetection]] = defaultdict(list)
+    annotated_frames: set[tuple[str, int]] = set()
 
     for row, record in enumerate(_load_jsonl(predictions_path), 1):
         if record.get("type", "person_detection") != "person_detection":
@@ -70,12 +71,16 @@ def evaluate_jsonl(predictions_path: Path, ground_truth_path: Path,
 
     for row, record in enumerate(_load_jsonl(ground_truth_path), 1):
         key = _frame_key(record, ground_truth_path, row)
+        annotated_frames.add(key)
+        if record.get("empty_frame") is True:
+            ground_truth.setdefault(key, [])
+            continue
         ground_truth[key].append(_box(record, ground_truth_path, row))
 
-    if not ground_truth:
-        raise ValueError("ground-truth file contains no annotated person boxes")
+    if not annotated_frames:
+        raise ValueError("ground-truth file contains no annotated frames")
 
-    keys = set(predictions) | set(ground_truth)
+    keys = set(predictions) | annotated_frames | set(ground_truth)
     tp = fp = fn = 0
     frame_reports = []
     for video_id, frame_index in sorted(keys):
@@ -99,7 +104,7 @@ def evaluate_jsonl(predictions_path: Path, ground_truth_path: Path,
         "schema_version": 1,
         "metric": "frame-level greedy IoU precision/recall/F1 (not COCO AP/mAP)",
         "iou_threshold": iou_threshold,
-        "annotated_frames": len(ground_truth),
+        "annotated_frames": len(annotated_frames),
         "evaluated_frames": len(keys),
         "true_positives": tp, "false_positives": fp, "false_negatives": fn,
         "precision": precision, "recall": recall, "f1": f1,
