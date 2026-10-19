@@ -1,13 +1,12 @@
-# Licence decision required
+# Licence decision
 
-CrickVision does not yet declare a project-wide open-source licence. Do not assume
-that code, pretrained weights, datasets, and broadcast footage share one licence.
+**Decision: MIT for original CrickVision source code and project-authored documentation**, recorded 20 October 2026. See the root `LICENSE` file.
 
-Before a public release:
-1. Select a licence for original code after considering contributor and patent requirements.
-2. Verify licences for dependencies, tracker code, pretrained checkpoints, and assets.
-3. Record dataset terms separately for each subset and annotation source.
-4. Do not distribute footage, extracted frames, or weights unless terms permit redistribution.
-5. Update pyproject.toml, THIRD_PARTY_NOTICES.md, and README consistently.
+This decision does not relicense third-party components or grant rights to input video, datasets, pretrained checkpoints, or generated outputs whose rights depend on source assets. Before redistribution, review exact package/model/dataset terms and applicable source-footage rights. This file is an engineering record, not legal advice.
 
-This document is a release gate, not a licence grant.
+Release gates still open:
+1. Audit exact dependency versions and generate a software bill of materials.
+2. Verify the selected Torchvision checkpoint and its upstream model/data terms.
+3. Audit each dataset subset and source video independently.
+4. Keep restricted media out of this repository and distribution bundles.
+5. Update third-party notices as the dependency set changes.
