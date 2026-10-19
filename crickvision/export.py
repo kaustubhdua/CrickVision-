@@ -10,7 +10,7 @@ FIELDS = [
     "video_id", "shot_id", "frame_index", "timestamp_ms", "type", "class",
     "x1", "y1", "x2", "y2", "confidence", "track_id", "track_age",
     "team", "team_colour_fraction", "shot_score", "ground_x", "ground_y",
-    "center_x", "center_y", "radius", "candidate_score", "ball_track_id", "status",
+    "center_x", "center_y", "radius", "candidate_score", "ball_track_id", "candidate_path_xy", "status",
 ]
 
 
