@@ -234,3 +234,30 @@ The expanded research document defines the product scope, module requirements, a
 - [Read the research and product specification](docs/research-and-product-spec.md)
 
 It distinguishes the current generic person-detection baseline from planned features and sets release gates so we do not claim tracking, team classification, ball trajectories, or accuracy before those capabilities are implemented and benchmarked.
+
+
+## Experimental analysis modules (v0.2)
+
+The repository now also includes reusable, explicitly experimental modules:
+
+- `crickvision.tracker.IoUTracker`: greedy intersection-over-union association with track ageing and explicit reset at shot boundaries. IDs are not reliable across occlusion or camera cuts; this is a baseline, not a production MOT algorithm.
+- `crickvision.shot.ShotBoundaryDetector`: frame-difference cut heuristic. Fast motion, flashes and replays can cause false positives.
+- `crickvision.team.classify_team_colour`: configurable HSV kit-colour hint from a torso crop. Requires user-defined HSV ranges and can return `Unknown`; it is not a learned classifier.
+
+These APIs are intentionally modular and are not yet presented as a validated end-to-end match analytics system. The current default video CLI still runs person detection only. See tests for deterministic synthetic examples.
+
+### Development and tests
+
+```bash
+python -m pip install -e ".[dev]"
+python -m compileall -q crickvision tests
+python -m pytest -q
+```
+
+GitHub Actions runs the test suite on Python 3.10, 3.11 and 3.12. CI results must be checked on the repository before treating the build as verified.
+
+### Current implementation boundary
+
+Implemented: generic person detector, video annotation CLI, JSONL detections, standalone IoU tracking, shot-cut heuristic, configurable HSV team-colour hint, initial tests and CI.
+
+Still not complete/validated: cricket-trained detection weights, ball detection/trajectory, calibrated field mapping, role/event inference, dashboard, labelled benchmark, match-level evaluation, model cards and final project licence selection. No accuracy or match-scoring claims are made.
