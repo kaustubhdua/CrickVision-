@@ -16,6 +16,7 @@ dashboard = ["streamlit>=1.35"]
 
 [project.scripts]
 crickvision = "crickvision.cli:main"
+crickvision-manifest = "crickvision.manifest:main"
 
 [tool.setuptools.packages.find]
 include = ["crickvision*"]
