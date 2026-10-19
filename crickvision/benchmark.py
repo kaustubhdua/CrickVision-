@@ -49,7 +49,7 @@ def _box(record: dict[str, Any], path: Path, row: int) -> PersonDetection:
 
 def _frame_key(record: dict[str, Any], path: Path, row: int) -> tuple[str, int]:
     frame = record.get("frame_index")
-    if not isinstance(frame, int) or frame < 0:
+    if isinstance(frame, bool) or not isinstance(frame, int) or frame < 0:
         raise ValueError(f"{path}: row {row}: frame_index must be a non-negative integer")
     video = record.get("video_id", "default")
     if not isinstance(video, str) or not video:
