@@ -100,6 +100,15 @@ python -m crickvision.cli --input match.mp4 --output runs/calibrated.mp4 --calib
 
 When calibration passes its reprojection-error threshold, JSONL detections include `ground_xy` for the bottom-centre of each person box. This is a manual planar estimate, not automatic pitch detection or 3D reconstruction. Do not use it for airborne ball positions or views where the ground plane/camera calibration is invalid.
 
+
+### Experimental ball-candidate mode
+
+```bash
+python -m crickvision.cli --input match.mp4 --output runs/candidates.mp4 --ball-candidates --ball-min-radius 1 --ball-max-radius 8
+```
+
+This optional mode uses Hough circles to propose small circular image regions and links nearby proposals into short tracklets. It draws candidate trails and writes JSONL rows with `status: "unverified_candidate"`. Bright objects, highlights, graphics, and noise can all trigger false positives; the score is a local-contrast ranking heuristic, not a probability. These paths are not reliable ball identities or physical trajectories.
+
 ### Fine-tune a person detector
 
 Once you have a rights-cleared, manually labelled image dataset, prepare a JSONL manifest with one row per image:
@@ -314,7 +323,7 @@ GitHub Actions runs the test suite on Python 3.10, 3.11 and 3.12. CI results mus
 
 ### Current implementation boundary
 
-Implemented: generic person detector, fine-tuning starter, custom checkpoint loading, video annotation CLI, schema-versioned JSONL detections, shot-aware IoU tracking, shot-cut heuristic, configurable HSV team-colour hint, optional manual planar calibration, local upload dashboard, match-split manifest validation, frame-level benchmark runner, CSV export, tests, and CI configuration.
+Implemented: generic person detector, fine-tuning starter, custom checkpoint loading, video annotation CLI, schema-versioned JSONL detections, shot-aware IoU tracking, shot-cut heuristic, configurable HSV team-colour hint, manual planar calibration, experimental ball-candidate tracklets, local upload dashboard, match-split manifest validation, frame-level benchmark runner, CSV export, tests, and CI configuration.
 
 Still not complete/validated: green CI run and full real-video smoke test; cricket-specific model training on rights-cleared labelled data; a reliable ball detector and trajectory reconstruction; automatic landmark detection and validated field mapping; role/event inference; track-level team classification; a legally usable labelled benchmark with measured results; complete third-party licence audit and software bill of materials. No accuracy or match-scoring claims are made.
 
