@@ -68,8 +68,12 @@ def load_team_colors(path: Path | None) -> tuple[TeamColourConfig, ...]:
             raise SystemExit(f"Team colour entry {index} needs a unique non-empty name")
         if not isinstance(lower, list) or not isinstance(upper, list) or len(lower) != 3 or len(upper) != 3:
             raise SystemExit(f"Team colour entry {index} needs 3-value hsv_lower and hsv_upper arrays")
-        if any(not isinstance(v, int) or v < 0 or v > 255 for v in lower + upper):
-            raise SystemExit(f"Team colour entry {index} HSV values must be integers from 0 to 255")
+        if any(not isinstance(v, int) for v in lower + upper):
+            raise SystemExit(f"Team colour entry {index} HSV values must be integers")
+        if any(v < 0 or v > 179 for v in (lower[0], upper[0])):
+            raise SystemExit(f"Team colour entry {index} hue values must be from 0 to 179")
+        if any(v < 0 or v > 255 for v in (lower[1], lower[2], upper[1], upper[2])):
+            raise SystemExit(f"Team colour entry {index} saturation/value values must be from 0 to 255")
         if any(a > b for a, b in zip(lower, upper)):
             raise SystemExit(f"Team colour entry {index} has a lower HSV value above its upper value")
         names.add(name)
