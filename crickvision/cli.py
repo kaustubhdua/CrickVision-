@@ -7,6 +7,7 @@ import math
 from pathlib import Path
 
 import cv2
+import numpy as np
 from PIL import Image
 
 from crickvision.detector import PersonDetector
@@ -264,6 +265,15 @@ def main() -> None:
                             centre = (int(round(candidate.x)), int(round(candidate.y)))
                             radius = max(1, int(round(candidate.radius)))
                             cv2.circle(frame, centre, radius, (255, 80, 20), 2, cv2.LINE_AA)
+                            if len(ball_track.history_xy) > 1:
+                                trail = [
+                                    (int(round(x)), int(round(y)))
+                                    for x, y in ball_track.history_xy
+                                ]
+                                cv2.polylines(
+                                    frame, [np.asarray(trail, dtype=np.int32)],
+                                    False, (255, 80, 20), 2, cv2.LINE_AA,
+                                )
                             output.write(json.dumps({
                                 "schema_version": 1,
                                 "video_id": args.input.stem,
@@ -276,6 +286,7 @@ def main() -> None:
                                 "candidate_score": candidate.score,
                                 "ball_track_id": ball_track.track_id,
                                 "track_age": ball_track.age,
+                                "candidate_path_xy": [list(point) for point in ball_track.history_xy],
                                 "status": "unverified_candidate",
                             }, ensure_ascii=False) + "\n")
                 writer.write(frame)
