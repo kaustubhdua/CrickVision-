@@ -20,3 +20,27 @@ def test_rejects_unknown_split(tmp_path):
     p.write_text(json.dumps({"clip_id":"x","source_id":"s","match_id":"m",
         "video_path":"x","rights_status":"licensed","split":"maybe"}))
     assert any("split must be" in e for e in validate_manifest(p))
+
+def test_rejects_match_leakage_across_splits(tmp_path):
+    p = tmp_path / "manifest.jsonl"
+    base = {"source_id": "s", "match_id": "match-1", "video_path": "x",
+            "rights_status": "licensed"}
+    train = dict(base, clip_id="c1", split="train")
+    test = dict(base, clip_id="c2", split="test")
+    p.write_text(json.dumps(train) + "\\n" + json.dumps(test), encoding="utf-8")
+    assert any("leaks across splits" in error for error in validate_manifest(p))
+
+
+def test_rejects_invalid_clip_time_range(tmp_path):
+    p = tmp_path / "manifest.jsonl"
+    record = {"clip_id": "c1", "source_id": "s", "match_id": "m",
+              "video_path": "x", "rights_status": "licensed", "split": "train",
+              "clip_start_ms": 1000, "clip_end_ms": 500}
+    p.write_text(json.dumps(record), encoding="utf-8")
+    assert any("clip_end_ms must be greater" in error for error in validate_manifest(p))
+
+
+def test_blank_manifest_is_empty(tmp_path):
+    p = tmp_path / "manifest.jsonl"
+    p.write_text("  \\n\\n", encoding="utf-8")
+    assert "manifest is empty" in validate_manifest(p)
