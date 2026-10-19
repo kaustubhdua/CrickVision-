@@ -22,5 +22,7 @@ def test_reset_starts_new_identity():
 
 def test_tracks_age_out():
     t = IoUTracker(max_missed=1)
-    t.update([box(0,0,20,40)]); t.update([]); t.update([])
+    t.update([box(0,0,20,40)])
+    t.update([])
+    t.update([])
     assert not t._tracks
