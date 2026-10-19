@@ -30,6 +30,7 @@ class PersonBoxDataset(Dataset):
         except OSError as exc:
             raise ValueError(f"cannot read manifest: {exc}") from exc
         self.rows: list[dict[str, Any]] = []
+        self._match_splits: dict[str, str] = {}
         for line_no, line in enumerate(lines, 1):
             if not line.strip():
                 continue
@@ -40,17 +41,17 @@ class PersonBoxDataset(Dataset):
             if not isinstance(row, dict):
                 raise ValueError(f"manifest line {line_no}: expected an object")
             row_split = row.get("split")
+            if row_split not in {"train", "validation", "test", "unassigned"}:
+                raise ValueError(f"manifest line {line_no}: unsupported split {row_split!r}")
             if row_split in {"train", "validation", "test"}:
                 match_id = row.get("match_id")
                 if not isinstance(match_id, str) or not match_id.strip():
                     raise ValueError(f"manifest line {line_no}: match_id is required for split integrity")
-                previous_split = getattr(self, "_match_splits", {}).get(match_id)
+                previous_split = self._match_splits.get(match_id)
                 if previous_split is not None and previous_split != row_split:
                     raise ValueError(
                         f"manifest line {line_no}: match_id {match_id!r} leaks across splits"
                     )
-                if not hasattr(self, "_match_splits"):
-                    self._match_splits = {}
                 self._match_splits[match_id] = row_split
             if row_split != split:
                 continue
