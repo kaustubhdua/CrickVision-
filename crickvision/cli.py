@@ -25,6 +25,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--threshold", type=float, default=0.60)
     parser.add_argument("--every-n-frames", type=int, default=1)
     parser.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
+    parser.add_argument("--weights", type=Path, default=None,
+                        help="Optional local checkpoint from crickvision-train-detector")
     parser.add_argument("--no-tracking", action="store_true",
                         help="Disable experimental IoU tracking")
     parser.add_argument("--shot-threshold", type=float, default=0.42,
@@ -110,7 +112,7 @@ def main() -> None:
 
     # Load the model before opening output resources, so model/download failures
     # cannot leave a half-created output file or an unreleased VideoWriter.
-    detector = PersonDetector(device=args.device, threshold=args.threshold)
+    detector = PersonDetector(device=args.device, threshold=args.threshold, checkpoint=args.weights)
     capture = cv2.VideoCapture(str(args.input))
     if not capture.isOpened():
         capture.release()
