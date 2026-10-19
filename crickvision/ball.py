@@ -78,18 +78,23 @@ class BallCandidateDetector:
         candidates = []
         for x, y, radius in circles[0]:
             x_i, y_i, r_i = int(round(x)), int(round(y)), max(1, int(round(radius)))
-            if x_i - r_i < 0 or y_i - r_i < 0 or x_i + r_i >= width or y_i + r_i >= height:
+            patch_radius = r_i + 3
+            if (x_i - patch_radius < 0 or y_i - patch_radius < 0
+                    or x_i + patch_radius >= width or y_i + patch_radius >= height):
                 continue
-            inner = gray[y_i-r_i:y_i+r_i+1, x_i-r_i:x_i+r_i+1]
-            yy, xx = np.ogrid[-r_i:r_i+1, -r_i:r_i+1]
-            inner_mask = xx * xx + yy * yy <= max(1, r_i - 1) ** 2
-            ring_mask = (xx * xx + yy * yy >= (r_i + 1) ** 2) & (
-                xx * xx + yy * yy <= (r_i + 3) ** 2
+            patch = gray[
+                y_i-patch_radius:y_i+patch_radius+1,
+                x_i-patch_radius:x_i+patch_radius+1,
+            ]
+            yy, xx = np.ogrid[-patch_radius:patch_radius+1, -patch_radius:patch_radius+1]
+            distance_squared = xx * xx + yy * yy
+            inner_mask = distance_squared <= max(1, r_i - 1) ** 2
+            ring_mask = (distance_squared >= (r_i + 1) ** 2) & (
+                distance_squared <= (r_i + 3) ** 2
             )
-            ring = gray[y_i-r_i:y_i+r_i+1, x_i-r_i:x_i+r_i+1]
             # Small local contrast score for ranking proposals; not a probability.
-            inner_values = ring[inner_mask]
-            ring_values = ring[ring_mask]
+            inner_values = patch[inner_mask]
+            ring_values = patch[ring_mask]
             if inner_values.size == 0 or ring_values.size == 0:
                 score = 0.0
             else:
