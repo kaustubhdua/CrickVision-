@@ -80,7 +80,7 @@ def evaluate_jsonl(predictions_path: Path, ground_truth_path: Path,
     if not annotated_frames:
         raise ValueError("ground-truth file contains no annotated frames")
 
-    keys = set(predictions) | annotated_frames | set(ground_truth)
+    keys = annotated_frames
     tp = fp = fn = 0
     frame_reports = []
     for video_id, frame_index in sorted(keys):
@@ -105,7 +105,7 @@ def evaluate_jsonl(predictions_path: Path, ground_truth_path: Path,
         "metric": "frame-level greedy IoU precision/recall/F1 (not COCO AP/mAP)",
         "iou_threshold": iou_threshold,
         "annotated_frames": len(annotated_frames),
-        "evaluated_frames": len(keys),
+        "evaluated_frames": len(annotated_frames),
         "true_positives": tp, "false_positives": fp, "false_negatives": fn,
         "precision": precision, "recall": recall, "f1": f1,
         "frames": frame_reports,
