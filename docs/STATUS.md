@@ -20,13 +20,13 @@ Package version: 0.3.0
 - No delivery/event inference, automatic pitch/landmark detector, role classifier, or cross-shot identity re-identification.
 - No track-level team aggregation or manual correction UI.
 - No measured benchmark on real cricket footage; synthetic tests only test software behavior.
-- No confirmed green CI run. The connected GitHub status response returned no check statuses/workflow runs, so the current branch's tests must be verified in GitHub Actions.
+- GitHub Actions CI passed on Python 3.10, 3.11, and 3.12 for commit `935afeb3feade57208c9effbc4159e8e2b26c44b`; this verifies lint, compilation, the test suite, and CLI help smoke checks for that commit.
 - No full end-to-end run has been verified against a rights-cleared real cricket clip.
 - Third-party model/data/footage licence audit and a software bill of materials remain release gates.
 
 ## Recommended next actions
 
-1. Run GitHub Actions on main and fix any lint/test/build failures.
+1. Keep CI green on each subsequent code change; latest verified run: [GitHub Actions run 39323078677](https://github.com/kaustubhdua/CrickVision-/actions/runs/39323078677).
 2. Run a short, rights-cleared cricket clip through the CLI and dashboard.
 3. Label a small match-disjoint dataset and run the benchmark tool.
 4. Fine-tune a person detector only after confirming data and pretrained-weight terms.
