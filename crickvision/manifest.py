@@ -1,0 +1,1 @@
+Add dataset manifest validation CLI
