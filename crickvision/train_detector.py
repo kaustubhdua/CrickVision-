@@ -44,7 +44,7 @@ class PersonBoxDataset(Dataset):
             if not isinstance(row, dict):
                 raise ValueError(f"manifest line {line_no}: expected an object")
             row_split = row.get("split")
-            if row_split not in {"train", "validation", "test", "unassigned"}:
+            if not isinstance(row_split, str) or row_split not in {"train", "validation", "test", "unassigned"}:
                 raise ValueError(f"manifest line {line_no}: unsupported split {row_split!r}")
             if row_split in {"train", "validation", "test"}:
                 match_id = row.get("match_id")
