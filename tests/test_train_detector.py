@@ -9,11 +9,12 @@ from crickvision.train_detector import PersonBoxDataset
 def test_person_box_dataset_loads_boxes_and_empty_frame(tmp_path):
     image_path = tmp_path / "frame.png"
     Image.new("RGB", (32, 24), color=(20, 80, 120)).save(image_path)
+    Image.new("RGB", (32, 24), color=(120, 80, 20)).save(tmp_path / "val.png")
     manifest = tmp_path / "train.jsonl"
     manifest.write_text("\n".join([
         json.dumps({"image_path": "frame.png", "split": "train", "match_id": "match-train",
                     "boxes_xyxy": [[2, 3, 20, 22]]}),
-        json.dumps({"image_path": "frame.png", "split": "validation", "match_id": "match-val",
+        json.dumps({"image_path": "val.png", "split": "validation", "match_id": "match-val",
                     "boxes_xyxy": []}),
     ]) + "\n", encoding="utf-8")
     dataset = PersonBoxDataset(manifest, "train")
