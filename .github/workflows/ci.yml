@@ -23,3 +23,5 @@ jobs:
       - run: python -m pytest -q
       - run: crickvision --help
       - run: crickvision-manifest --help
+      - run: crickvision-benchmark --help
+      - run: crickvision-export --help
