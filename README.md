@@ -251,7 +251,7 @@ All results should include dataset size, match-level splits, model/checkpoint ha
 
 ## Contributing
 
-Contributions are welcome. Start with issues for dataset auditing, baseline evaluation, tests, tracking, team classification, calibration, and documentation. Please include a reproducible example, environment details, expected behaviour, and measured results for model changes. Never upload private or unlicensed footage.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup and contribution rules. Never upload private or unlicensed footage. Security reporting guidance is in [.github/SECURITY.md](.github/SECURITY.md).
 
 ## Disclaimer
 
