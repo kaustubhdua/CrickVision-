@@ -19,7 +19,7 @@ Use for development, qualitative inspection, and preparing labelled cricket-vide
 - IoU tracking IDs are temporary tracklet labels, not identity.
 - Team-colour hints are hand-configured HSV rules and can be wrong under lighting changes or similar kits.
 - Shot boundaries are a frame-difference heuristic and can produce false positives.
-- No ball trajectory, calibrated ground coordinates, delivery events, or official match statistics are provided.
+- Optional Hough-circle ball-like proposals can be enabled for manual review, but they are unverified candidates with potentially many false positives. No reliable ball tracking, trajectory, delivery events, or official match statistics are provided.
 
 ## Data and evaluation
 
