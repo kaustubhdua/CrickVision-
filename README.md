@@ -27,6 +27,7 @@ CrickVision is a local-first project to detect and track cricket players, classi
 - A local Streamlit dashboard for a single trusted user.
 - JSONL dataset-manifest validation, frame-level IoU precision/recall/F1 benchmarking, and CSV export.
 - Local inference with no hosted AI API key; the first run may download pretrained weights unless cached.
+- A fine-tuning starter workflow for person boxes, custom checkpoint loading, benchmark reports, and CSV exports.
 
 The baseline detects the generic COCO `person` class. Cricket-specific accuracy has not been established.
 
@@ -129,7 +130,7 @@ This training workflow learns the single person class; it does not train a ball 
 - [x] Reset the baseline track state when the shot-cut heuristic flags a camera cut; validate cut/ID behaviour on labelled footage.
 - [ ] Record track age, confidence, missing detections, and fragmentation.
 - [ ] Evaluate HOTA, IDF1, ID switches, and fragmentation against labelled clips.
-- [ ] Add track visualisation and CSV/JSON exports.
+- [x] Export JSONL detections and CSV summaries; track visualisation and track metrics remain open.
 - **Exit gate:** documented tracking results across multiple broadcast views.
 
 ### Phase 3 — Team and official classification
@@ -176,9 +177,9 @@ This training workflow learns the single person class; it does not train a ball 
 - [ ] Profile CPU throughput and peak memory on documented hardware.
 - [ ] Evaluate optional ONNX Runtime/GPU acceleration without changing output contracts.
 - [x] Add initial CI and unit tests; linting, type checks, issue templates, contribution guide, and release process remain open.
-- [ ] Publish model/data cards, provenance, hashes, and third-party notices.
-- [ ] Add reproducible benchmark scripts and regression fixtures with redistribution rights.
-- [ ] Review security, privacy, and all licences before public model/data distribution.
+- [x] Publish a baseline model card, data policy, annotation guidelines, and third-party notices; trained-checkpoint hashes and full SBOM remain pending.
+- [x] Add a benchmark runner and synthetic regression fixtures; a rights-cleared real-cricket benchmark remains pending.
+- [ ] Complete security/privacy review and audit all third-party, model, dataset, and footage terms before distributing models or data.
 
 ## Target architecture
 
@@ -296,7 +297,7 @@ GitHub Actions runs the test suite on Python 3.10, 3.11 and 3.12. CI results mus
 
 Implemented: generic person detector, video annotation CLI, JSONL detections, shot-aware IoU tracking, shot-cut heuristic, configurable HSV team-colour hint, local upload dashboard, manifest validation, frame-level detection metrics, tests and CI configuration.
 
-Still not complete/validated: green CI run and full end-to-end smoke test; cricket-trained detection weights; ball detection/trajectory; calibrated field mapping; role/event inference; track-level team classification; a legally usable labelled benchmark with measured results; model cards; complete third-party licence audit and software bill of materials. No accuracy or match-scoring claims are made.
+Still not complete/validated: green CI run and full real-video smoke test; cricket-specific model training on rights-cleared labelled data; ball detection/trajectory; calibrated field mapping; role/event inference; track-level team classification; a legally usable labelled benchmark with measured results; complete third-party licence audit and software bill of materials. No accuracy or match-scoring claims are made.
 
 
 ## Integrated shot-aware analysis
