@@ -75,3 +75,23 @@ def test_benchmark_ignores_unannotated_prediction_frames(tmp_path):
     assert report["evaluated_frames"] == 1
     assert report["true_positives"] == 1
     assert report["false_positives"] == 0
+
+def test_benchmark_rejects_mixed_empty_frame_and_box_rows(tmp_path):
+    pred = tmp_path / "pred.jsonl"
+    gt = tmp_path / "gt.jsonl"
+    write_jsonl(pred, [])
+    write_jsonl(gt, [
+        {"video_id": "a", "frame_index": 0, "empty_frame": True},
+        {"video_id": "a", "frame_index": 0, "bbox_xyxy": [0, 0, 10, 10]},
+    ])
+    with pytest.raises(ValueError, match="mixes empty_frame and box rows"):
+        evaluate_jsonl(pred, gt)
+
+
+def test_benchmark_rejects_non_finite_box_coordinates(tmp_path):
+    pred = tmp_path / "pred.jsonl"
+    gt = tmp_path / "gt.jsonl"
+    write_jsonl(pred, [])
+    write_jsonl(gt, [{"frame_index": 0, "bbox_xyxy": [0, 0, float("inf"), 10]}])
+    with pytest.raises(ValueError, match="finite"):
+        evaluate_jsonl(pred, gt)
