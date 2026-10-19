@@ -1,6 +1,6 @@
 # 🏏 CrickVision
 
-**Open-source computer vision for cricket video intelligence.**  
+**A local-first computer-vision toolkit for cricket video intelligence.**  
 *Turn broadcast pixels into structured cricket insights.*
 
 CrickVision is a local-first project to detect and track cricket players, classify teams, map field positions, and progressively analyse the ball and delivery events from video. The long-term goal is a reproducible, well-tested toolkit for developers, researchers, coaches, and cricket analysts.
@@ -92,7 +92,7 @@ The output video shows detections with experimental, temporary IoU track IDs unl
 
 ### Phase 2 — Multi-object player tracking
 - [x] Add a lightweight greedy IoU tracking baseline; stronger MOT adapters remain open after licence/dependency review.
-- [ ] Track players within a shot and reset or isolate track IDs at camera cuts.
+- [x] Reset the baseline track state when the shot-cut heuristic flags a camera cut; validate cut/ID behaviour on labelled footage.
 - [ ] Record track age, confidence, missing detections, and fragmentation.
 - [ ] Evaluate HOTA, IDF1, ID switches, and fragmentation against labelled clips.
 - [ ] Add track visualisation and CSV/JSON exports.
@@ -141,7 +141,7 @@ The output video shows detections with experimental, temporary IoU track IDs unl
 ### Phase 8 — Performance, release, and community
 - [ ] Profile CPU throughput and peak memory on documented hardware.
 - [ ] Evaluate optional ONNX Runtime/GPU acceleration without changing output contracts.
-- [ ] Add CI, linting, type checks, tests, issue templates, contribution guide, and release notes.
+- [x] Add initial CI and unit tests; linting, type checks, issue templates, contribution guide, and release process remain open.
 - [ ] Publish model/data cards, provenance, hashes, and third-party notices.
 - [ ] Add reproducible benchmark scripts and regression fixtures with redistribution rights.
 - [ ] Review security, privacy, and all licences before public model/data distribution.
