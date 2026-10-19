@@ -16,8 +16,11 @@ def test_export_detection_and_shot_records(tmp_path):
                     "ground_xy": [5.5, 12.0]}),
         json.dumps({"type": "shot_boundary", "frame_index": 5,
                     "timestamp_ms": 160, "score": 0.8}),
+        json.dumps({"type": "ball_candidate", "frame_index": 6, "center_xy": [20.5, 30.5],
+                    "radius": 3.0, "candidate_score": 0.7, "ball_track_id": 2,
+                    "status": "unverified_candidate"}),
     ]) + "\n", encoding="utf-8")
-    assert export_csv(source, destination) == 2
+    assert export_csv(source, destination) == 3
     with destination.open(encoding="utf-8", newline="") as file:
         rows = list(csv.DictReader(file))
     assert rows[0]["x1"] == "1"
@@ -26,6 +29,10 @@ def test_export_detection_and_shot_records(tmp_path):
     assert rows[0]["ground_x"] == "5.5"
     assert rows[0]["ground_y"] == "12.0"
     assert rows[1]["shot_score"] == "0.8"
+    assert rows[2]["center_x"] == "20.5"
+    assert rows[2]["center_y"] == "30.5"
+    assert rows[2]["ball_track_id"] == "2"
+    assert rows[2]["status"] == "unverified_candidate"
 
 
 def test_export_rejects_same_path(tmp_path):
