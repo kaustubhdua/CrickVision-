@@ -46,5 +46,5 @@ def test_custom_checkpoint_builds_two_class_detector(tmp_path, monkeypatch):
 
 
 def test_custom_checkpoint_must_exist(tmp_path):
-    with pytest.raises(FileNotFoundError, match="Checkpoint not found"):
+    with pytest.raises(FileNotFoundError, match="checkpoint not found"):
         PersonDetector(device="cpu", checkpoint=tmp_path / "missing.pt")
