@@ -12,6 +12,7 @@ dependencies = ["torch>=2.2", "torchvision>=0.17", "opencv-python>=4.9", "Pillow
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "ruff>=0.5", "mypy>=1.10"]
+dashboard = ["streamlit>=1.35"]
 
 [project.scripts]
 crickvision = "crickvision.cli:main"
