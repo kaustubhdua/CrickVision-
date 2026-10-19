@@ -27,7 +27,7 @@ def estimate_homography(
     """Fit image-pixel to user-defined planar ground coordinates.
 
     The error is measured in the same units as ground_points (for example metres).
-    Use at least four well-distributed, coplanar correspondences.
+    Use at least five well-distributed, coplanar correspondences so reprojection error can provide a residual check.
     """
     if max_reprojection_error <= 0 or not np.isfinite(max_reprojection_error):
         raise ValueError("max_reprojection_error must be a finite positive number")
@@ -35,8 +35,8 @@ def estimate_homography(
     ground = np.asarray(ground_points, dtype=np.float64)
     if image_points.ndim != 2 or ground.ndim != 2 or image_points.shape != ground.shape:
         raise ValueError("image_points_px and ground_points must have matching Nx2 shapes")
-    if image_points.shape[1] != 2 or image_points.shape[0] < 4:
-        raise ValueError("at least four matching 2D point pairs are required")
+    if image_points.shape[1] != 2 or image_points.shape[0] < 5:
+        raise ValueError("at least five matching 2D point pairs are required")
     if not np.isfinite(image_points).all() or not np.isfinite(ground).all():
         raise ValueError("calibration points must be finite numbers")
 
