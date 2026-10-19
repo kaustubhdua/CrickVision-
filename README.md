@@ -6,7 +6,7 @@ Version 0.3.0 · [Changelog](CHANGELOG.md) · [Release checklist](docs/RELEASE_C
 
 CrickVision is a local-first project to detect and track cricket players, classify teams, map field positions, and progressively analyse the ball and delivery events from video. The long-term goal is a reproducible, well-tested toolkit for developers, researchers, coaches, and cricket analysts.
 
-> **Current status: experimental prototype (v0.3).** The default pipeline runs a general-purpose pretrained person detector, heuristic shot-cut detection, and optional IoU tracking. An optional HSV kit-colour hint can be enabled with user-provided ranges, but it is not a learned classifier and has not been validated on match footage. There is no cricket-trained checkpoint, ball tracking, automatic landmark detection, validated field mapping, event intelligence, or measured cricket benchmark. Manual planar homography projection is available when the user supplies valid point correspondences. Do not treat outputs as official match statistics.
+> **Current status: experimental prototype (v0.3).** The default pipeline runs a general-purpose pretrained person detector, heuristic shot-cut detection, and optional IoU tracking. An optional HSV kit-colour hint can be enabled with user-provided ranges, but it is not a learned classifier and has not been validated on match footage. There is no cricket-trained checkpoint, reliable/validated ball tracking, automatic landmark detection, validated field mapping, event intelligence, or measured cricket benchmark. An optional Hough-circle candidate proposal mode exists for manual review. Manual planar homography projection is available when the user supplies valid point correspondences. Do not treat outputs as official match statistics.
 
 ## Project goals
 
@@ -27,6 +27,7 @@ CrickVision is a local-first project to detect and track cricket players, classi
 - A local Streamlit dashboard for a single trusted user.
 - JSONL dataset-manifest validation, frame-level IoU precision/recall/F1 benchmarking, and CSV export.
 - Optional manual planar homography calibration to project person-box footpoints into user-defined ground coordinates.
+- Opt-in Hough-circle ball-like candidate proposals and nearest-neighbour candidate tracklets, explicitly marked unverified.
 - Local inference with no hosted AI API key; the first run may download pretrained weights unless cached.
 - A fine-tuning starter workflow for person boxes, custom checkpoint loading, benchmark reports, and CSV exports.
 
@@ -162,6 +163,7 @@ This training workflow learns the single person class; it does not train a ball 
 - **Exit gate:** measured landmark and ground-position error on held-out calibrated shots.
 
 ### Phase 5 — Ball detection and trajectory research
+- [x] Add optional Hough-circle ball-like candidate proposals and short candidate tracklets as an annotation aid.
 - [ ] Build a ball visibility/annotation protocol; label only visually identifiable ball positions.
 - [ ] Benchmark small-object detectors on full frames and high-resolution crops.
 - [ ] Add temporal association, uncertainty, missing-observation handling, and outlier rejection.
@@ -314,7 +316,7 @@ GitHub Actions runs the test suite on Python 3.10, 3.11 and 3.12. CI results mus
 
 Implemented: generic person detector, fine-tuning starter, custom checkpoint loading, video annotation CLI, schema-versioned JSONL detections, shot-aware IoU tracking, shot-cut heuristic, configurable HSV team-colour hint, optional manual planar calibration, local upload dashboard, match-split manifest validation, frame-level benchmark runner, CSV export, tests, and CI configuration.
 
-Still not complete/validated: green CI run and full real-video smoke test; cricket-specific model training on rights-cleared labelled data; ball detection/trajectory; automatic landmark detection and validated field mapping; role/event inference; track-level team classification; a legally usable labelled benchmark with measured results; complete third-party licence audit and software bill of materials. No accuracy or match-scoring claims are made.
+Still not complete/validated: green CI run and full real-video smoke test; cricket-specific model training on rights-cleared labelled data; a reliable ball detector and trajectory reconstruction; automatic landmark detection and validated field mapping; role/event inference; track-level team classification; a legally usable labelled benchmark with measured results; complete third-party licence audit and software bill of materials. No accuracy or match-scoring claims are made.
 
 
 ## Integrated shot-aware analysis
