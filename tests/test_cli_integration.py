@@ -67,8 +67,8 @@ def test_cli_end_to_end_with_synthetic_frames(tmp_path, monkeypatch):
     detections = tmp_path / "detections.jsonl"
     calibration = tmp_path / "calibration.json"
     calibration.write_text(json.dumps({
-        "image_points_px": [[0, 0], [39, 0], [39, 29], [0, 29]],
-        "ground_points": [[0, 0], [39, 0], [39, 29], [0, 29]],
+        "image_points_px": [[0, 0], [39, 0], [39, 29], [0, 29], [19.5, 14.5]],
+        "ground_points": [[0, 0], [39, 0], [39, 29], [0, 29], [19.5, 14.5]],
         "max_reprojection_error": 0.01,
     }), encoding="utf-8")
     writer = FakeWriter()
