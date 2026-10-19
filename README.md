@@ -157,7 +157,7 @@ This training workflow learns the single person class; it does not train a ball 
 - [ ] Annotate and evaluate landmark detection.
 - [x] Estimate a manual planar homography from user-provided point correspondences and reject calibration above a configured reprojection-error threshold.
 - [ ] Automate landmark detection and validate ground-position error on held-out calibrated shots.
-- [ ] Project player footpoints to a field map only when calibration is valid.
+- [x] Project person-box footpoints into user-defined ground-plane coordinates when manual calibration is valid; field-map visualisation remains open.
 - [ ] Mark measurements unavailable when geometry is uncertain; do not infer 3D positions from a planar homography.
 - **Exit gate:** measured landmark and ground-position error on held-out calibrated shots.
 
@@ -312,7 +312,7 @@ GitHub Actions runs the test suite on Python 3.10, 3.11 and 3.12. CI results mus
 
 ### Current implementation boundary
 
-Implemented: generic person detector, video annotation CLI, JSONL detections, shot-aware IoU tracking, shot-cut heuristic, configurable HSV team-colour hint, local upload dashboard, manifest validation, frame-level detection metrics, tests and CI configuration.
+Implemented: generic person detector, fine-tuning starter, custom checkpoint loading, video annotation CLI, schema-versioned JSONL detections, shot-aware IoU tracking, shot-cut heuristic, configurable HSV team-colour hint, optional manual planar calibration, local upload dashboard, match-split manifest validation, frame-level benchmark runner, CSV export, tests, and CI configuration.
 
 Still not complete/validated: green CI run and full real-video smoke test; cricket-specific model training on rights-cleared labelled data; ball detection/trajectory; automatic landmark detection and validated field mapping; role/event inference; track-level team classification; a legally usable labelled benchmark with measured results; complete third-party licence audit and software bill of materials. No accuracy or match-scoring claims are made.
 
