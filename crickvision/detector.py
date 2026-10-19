@@ -6,6 +6,7 @@ Faster R-CNN model and filters detections to the COCO "person" class.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 import torch
@@ -14,6 +15,7 @@ from torchvision.models.detection import (
     FasterRCNN_ResNet50_FPN_Weights,
     fasterrcnn_resnet50_fpn,
 )
+from torchvision.transforms.functional import to_tensor
 
 
 @dataclass(frozen=True)
@@ -33,7 +35,8 @@ class PersonDetector:
     # Torchvision COCO category ID for "person".
     PERSON_LABEL = 1
 
-    def __init__(self, device: str = "auto", threshold: float = 0.60) -> None:
+    def __init__(self, device: str = "auto", threshold: float = 0.60,
+                 checkpoint: Path | None = None) -> None:
         if not 0.0 <= threshold <= 1.0:
             raise ValueError("threshold must be between 0 and 1")
 
@@ -46,11 +49,24 @@ class PersonDetector:
 
         self.device = torch.device(device)
         self.threshold = threshold
-        self.weights = FasterRCNN_ResNet50_FPN_Weights.DEFAULT
-        self.model = fasterrcnn_resnet50_fpn(weights=self.weights)
+        self.checkpoint = checkpoint
+        if checkpoint is None:
+            self.weights = FasterRCNN_ResNet50_FPN_Weights.DEFAULT
+            self.model = fasterrcnn_resnet50_fpn(weights=self.weights)
+            self.transforms = self.weights.transforms()
+        else:
+            if not checkpoint.is_file():
+                raise FileNotFoundError(f"Detector checkpoint not found: {checkpoint}")
+            payload = torch.load(checkpoint, map_location="cpu", weights_only=True)
+            state_dict = payload.get("state_dict", payload) if isinstance(payload, dict) else payload
+            self.model = fasterrcnn_resnet50_fpn(
+                weights=None, weights_backbone=None, num_classes=2
+            )
+            self.model.load_state_dict(state_dict)
+            self.weights = None
+            self.transforms = to_tensor
         self.model.to(self.device)
         self.model.eval()
-        self.transforms = self.weights.transforms()
 
     @torch.inference_mode()
     def predict(self, image: Image.Image) -> list[PersonDetection]:
