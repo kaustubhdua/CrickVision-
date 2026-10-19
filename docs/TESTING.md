@@ -99,3 +99,13 @@ python -m crickvision.cli --input path/to/clip.mp4 --output runs/fine-tuned.mp4 
 ```
 
 The training command fine-tunes Faster R-CNN to a single target class, person. It does not train a ball detector or infer cricket roles. The checkpoint is selected by validation loss, which is only a training diagnostic; choose final models using a separate held-out match and the benchmark workflow. The default initial weights may download from Torchvision. Ensure your dataset and the pretrained weights' terms permit your intended use.
+
+## Manual ground-plane calibration
+
+Use the example config in configs/calibration.example.json as a schema only; replace every point with measured correspondences from the actual camera view. All ground points must lie on the same planar surface and use consistent units.
+
+```bash
+python -m crickvision.cli --input path/to/clip.mp4 --output runs/calibrated.mp4 --calibration configs/calibration.json
+```
+
+The CLI records the homography and reprojection error and adds ground_xy to each person detection. The projected point is the bounding-box bottom-centre. A valid homography does not guarantee accurate field positions if the landmarks are wrong, the camera moves, the point is not on the calibrated plane, or the image is a close-up/replay. This does not provide 3D coordinates or airborne ball trajectories.
