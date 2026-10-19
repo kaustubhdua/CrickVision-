@@ -25,6 +25,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: pip
       - run: python -m pip install --upgrade pip
+      - name: Install CPU-only PyTorch wheels
+        run: python -m pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
       - run: python -m pip install -e ".[dev]"
       - run: ruff check crickvision tests
       - run: python -m compileall -q crickvision tests
