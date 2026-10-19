@@ -178,6 +178,9 @@ def main() -> None:
                     break
                 timestamp_ms = _timestamp_ms(capture, frame_index, fps)
                 is_cut, cut_score = shot_detector.update(frame)
+                ball_candidates_for_frame = []
+                if ball_detector is not None and frame_index % args.every_n_frames == 0:
+                    ball_candidates_for_frame = ball_detector.detect(frame)
                 if is_cut:
                     tracker.reset()
                     if ball_tracker is not None:
@@ -249,9 +252,8 @@ def main() -> None:
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.55,
                                     (40, 220, 90), 2, cv2.LINE_AA)
                         output.write(json.dumps(record, ensure_ascii=False) + "\n")
-                    if ball_detector is not None and ball_tracker is not None:
-                        ball_candidates = ball_detector.detect(frame)
-                        for ball_track in ball_tracker.update(ball_candidates):
+                    if ball_tracker is not None:
+                        for ball_track in ball_tracker.update(ball_candidates_for_frame):
                             candidate = ball_track.candidate
                             centre = (int(round(candidate.x)), int(round(candidate.y)))
                             radius = max(1, int(round(candidate.radius)))
