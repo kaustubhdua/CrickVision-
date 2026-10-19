@@ -5,7 +5,7 @@
 
 CrickVision is a local-first project to detect and track cricket players, classify teams, map field positions, and progressively analyse the ball and delivery events from video. The long-term goal is a reproducible, well-tested toolkit for developers, researchers, coaches, and cricket analysts.
 
-> **Current status: early prototype.** The repository currently starts with a general-purpose pretrained person detector baseline. It is **not** a cricket-trained model, does not yet provide persistent tracking/team classification/ball tracking, and has no claimed accuracy benchmark. The roadmap below is aspirational until each item is implemented and evaluated.
+> **Current status: experimental prototype (v0.2).** The default pipeline runs a general-purpose pretrained person detector, heuristic shot-cut detection, and optional IoU tracking. A standalone HSV kit-colour helper is available, but it is not integrated into the CLI or validated on match footage. There is no cricket-trained detector, ball tracking, calibrated field mapping, event intelligence, or measured cricket benchmark. Do not treat outputs as official match statistics.
 
 ## Project goals
 
@@ -21,9 +21,11 @@ CrickVision is a local-first project to detect and track cricket players, classi
 
 - A baseline person detector using Torchvision's pretrained Faster R-CNN ResNet-50 FPN model.
 - A CLI to annotate an input video with person bounding boxes and confidence scores.
-- Configurable confidence threshold and frame sampling interval.
-- JSONL detections with frame index, timestamp, bounding box, and confidence.
-- Local video processing; no API key is required. The first run may download pretrained weights unless they are already cached.
+- Configurable confidence threshold, frame sampling, device, and shot-cut threshold.
+- JSONL records for person detections and heuristic shot boundaries; optional track IDs are temporary and may switch.
+- A local Streamlit dashboard for a single trusted user.
+- JSONL dataset-manifest validation and a small frame-level IoU precision/recall/F1 helper.
+- Local inference with no hosted AI API key; the first run may download pretrained weights unless cached.
 
 The baseline detects the generic COCO `person` class. Cricket-specific accuracy has not been established.
 
@@ -68,7 +70,7 @@ python -m crickvision.cli --input match.mp4 --output runs/annotated.mp4 \
 - `--detections`: JSON Lines output path (default: alongside the annotated video as `<output>.jsonl`).
 - `--device`: `auto`, `cpu`, or `cuda` (default: `auto`; CUDA requires a compatible PyTorch installation).
 
-The output video shows detections, not identity tracking. A box appearing in consecutive frames is not proof that it belongs to the same player.
+The output video shows detections with experimental, temporary IoU track IDs unless `--no-tracking` is passed. IDs can switch under occlusion, camera movement, and missed detections; they are not player identities.
 
 ## Architecture roadmap
 
@@ -76,20 +78,20 @@ The output video shows detections, not identity tracking. A box appearing in con
 - [x] Create repository structure and project scope.
 - [x] Add generic pretrained person-detection baseline and video CLI.
 - [x] Export timestamped detections as JSONL.
-- [ ] Add automated unit/integration tests and CI.
+- [x] Add automated unit tests and CI configuration (execution still needs a green Actions run).
 - [ ] Add dependency lockfile, model provenance, and software/data licence inventory.
 - [ ] Establish a small, legally usable, manually labelled cricket benchmark.
 
 ### Phase 1 — Cricket video baseline
 - [ ] Audit cricket-specific datasets and annotation formats.
-- [ ] Build a video manifest tool (source, match/clip ID, timestamps, rights, resolution, split).
+- [x] Build a basic video manifest validator (source, match/clip ID, rights status, split); timestamp/resolution enrichment remains future work.
 - [ ] Evaluate person recall separately for wide shots, pitch views, close-ups, day/night, and small distant players.
-- [ ] Add shot-boundary detection and shot/view labels.
+- [x] Add a heuristic shot-boundary detector; shot/view labels and benchmark validation remain open.
 - [ ] Add model configuration and structured logs.
 - **Exit gate:** a reproducible benchmark report on held-out matches; no performance claims without measured results.
 
 ### Phase 2 — Multi-object player tracking
-- [ ] Add tracker adapter and baseline such as ByteTrack or BoT-SORT after licence/dependency review.
+- [x] Add a lightweight greedy IoU tracking baseline; stronger MOT adapters remain open after licence/dependency review.
 - [ ] Track players within a shot and reset or isolate track IDs at camera cuts.
 - [ ] Record track age, confidence, missing detections, and fragmentation.
 - [ ] Evaluate HOTA, IDF1, ID switches, and fragmentation against labelled clips.
@@ -97,7 +99,7 @@ The output video shows detections, not identity tracking. A box appearing in con
 - **Exit gate:** documented tracking results across multiple broadcast views.
 
 ### Phase 3 — Team and official classification
-- [ ] Extract torso crops and robust colour features (e.g. HSV).
+- [x] Add a configurable HSV torso-colour heuristic; track-level aggregation and evaluation remain open.
 - [ ] Support user-configured team colours and Team A / Team B / Official / Unknown labels.
 - [ ] Aggregate predictions over tracklets rather than single frames.
 - [ ] Evaluate similar kits, white-clothing Test cricket, helmets/pads, lighting changes, and officials.
@@ -129,7 +131,7 @@ The output video shows detections, not identity tracking. A box appearing in con
 - **Exit gate:** event-level benchmark; no automatic scoring claims until independently validated.
 
 ### Phase 7 — Analytics application
-- [ ] Build a local dashboard for upload, playback, detections, tracks, field map, and event timeline.
+- [x] Add an initial local dashboard for video upload, processing, and downloads; playback, field map, event timeline and robust job management remain open.
 - [ ] Add side-by-side original/annotated video and track inspection.
 - [ ] Export JSON, CSV, annotated MP4, and benchmark reports.
 - [ ] Add job cancellation, resumable processing, caching, and bounded memory use.
@@ -244,7 +246,7 @@ The repository now also includes reusable, explicitly experimental modules:
 - `crickvision.shot.ShotBoundaryDetector`: frame-difference cut heuristic. Fast motion, flashes and replays can cause false positives.
 - `crickvision.team.classify_team_colour`: configurable HSV kit-colour hint from a torso crop. Requires user-defined HSV ranges and can return `Unknown`; it is not a learned classifier.
 
-These APIs are intentionally modular and are not yet presented as a validated end-to-end match analytics system. The current default video CLI still runs person detection only. See tests for deterministic synthetic examples.
+These APIs are intentionally modular and are not yet presented as a validated end-to-end match analytics system. The current default video CLI combines person detection, a shot-cut heuristic, and experimental IoU tracking. Team-colour classification remains a separate helper. See tests for deterministic synthetic examples.
 
 ### Development and tests
 
@@ -258,9 +260,9 @@ GitHub Actions runs the test suite on Python 3.10, 3.11 and 3.12. CI results mus
 
 ### Current implementation boundary
 
-Implemented: generic person detector, video annotation CLI, JSONL detections, standalone IoU tracking, shot-cut heuristic, configurable HSV team-colour hint, initial tests and CI.
+Implemented: generic person detector, video annotation CLI, JSONL detections, shot-aware IoU tracking, shot-cut heuristic, configurable HSV team-colour hint, local upload dashboard, manifest validation, frame-level detection metrics, tests and CI configuration.
 
-Still not complete/validated: cricket-trained detection weights, ball detection/trajectory, calibrated field mapping, role/event inference, dashboard, labelled benchmark, match-level evaluation, model cards and final project licence selection. No accuracy or match-scoring claims are made.
+Still not complete/validated: green CI run and full end-to-end smoke test; cricket-trained detection weights; ball detection/trajectory; calibrated field mapping; role/event inference; track-level team classification; labelled benchmark and match-level evaluation; model cards; complete third-party licence audit and final project licence selection. No accuracy or match-scoring claims are made.
 
 
 ## Integrated shot-aware analysis
