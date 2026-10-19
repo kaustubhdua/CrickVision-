@@ -8,7 +8,9 @@ Paths are resolved relative to the manifest file. Do not mix matches across spli
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import math
 from pathlib import Path
 from typing import Any
 
@@ -31,6 +33,7 @@ class PersonBoxDataset(Dataset):
             raise ValueError(f"cannot read manifest: {exc}") from exc
         self.rows: list[dict[str, Any]] = []
         self._match_splits: dict[str, str] = {}
+        self._image_splits: dict[Path, str] = {}
         for line_no, line in enumerate(lines, 1):
             if not line.strip():
                 continue
@@ -53,6 +56,13 @@ class PersonBoxDataset(Dataset):
                         f"manifest line {line_no}: match_id {match_id!r} leaks across splits"
                     )
                 self._match_splits[match_id] = row_split
+            image_value = row.get("image_path")
+            if isinstance(image_value, str) and image_value.strip() and row_split in {"train", "validation", "test"}:
+                resolved_image = (self.base / image_value).resolve()
+                previous_image_split = self._image_splits.get(resolved_image)
+                if previous_image_split is not None and previous_image_split != row_split:
+                    raise ValueError(f"manifest line {line_no}: image_path leaks across splits")
+                self._image_splits[resolved_image] = row_split
             if row_split != split:
                 continue
             image_path = row.get("image_path")
@@ -64,9 +74,11 @@ class PersonBoxDataset(Dataset):
             checked_boxes = []
             for box in boxes:
                 if (not isinstance(box, list) or len(box) != 4
-                        or any(not isinstance(v, (int, float)) for v in box)):
+                        or any(isinstance(v, bool) or not isinstance(v, (int, float)) for v in box)):
                     raise ValueError(f"manifest line {line_no}: each box must contain four numbers")
                 x1, y1, x2, y2 = (float(v) for v in box)
+                if not all(math.isfinite(v) for v in (x1, y1, x2, y2)):
+                    raise ValueError(f"manifest line {line_no}: box coordinates must be finite")
                 if x1 < 0 or y1 < 0 or x2 <= x1 or y2 <= y1:
                     raise ValueError(f"manifest line {line_no}: invalid positive-area xyxy box")
                 checked_boxes.append([x1, y1, x2, y2])
@@ -175,6 +187,7 @@ def main() -> int:
     )
     best_val = float("inf")
     args.output.parent.mkdir(parents=True, exist_ok=True)
+    manifest_sha256 = hashlib.sha256(args.manifest.read_bytes()).hexdigest()
     for epoch in range(1, args.epochs + 1):
         train_loss = _epoch(model, train_loader, device, optimizer)
         val_loss = _epoch(model, val_loader, device)
@@ -190,7 +203,15 @@ def main() -> int:
                 "validation_loss": val_loss,
                 "train_loss": train_loss,
                 "device": device_name,
-                "manifest": str(args.manifest.resolve()),
+                "manifest_name": args.manifest.name,
+                "manifest_sha256": manifest_sha256,
+                "training_config": {
+                    "epochs_requested": args.epochs,
+                    "batch_size": args.batch_size,
+                    "learning_rate": args.learning_rate,
+                    "pretrained_initialization": not args.no_pretrained,
+                    "best_epoch": epoch,
+                },
                 "torch_version": torch.__version__,
             }, args.output)
             print(f"saved best checkpoint: {args.output}")
