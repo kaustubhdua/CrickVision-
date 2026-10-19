@@ -24,7 +24,7 @@ CrickVision is a local-first project to detect and track cricket players, classi
 - Configurable confidence threshold, frame sampling, device, and shot-cut threshold.
 - JSONL records for person detections and heuristic shot boundaries; optional track IDs are temporary and may switch.
 - A local Streamlit dashboard for a single trusted user.
-- JSONL dataset-manifest validation and a small frame-level IoU precision/recall/F1 helper.
+- JSONL dataset-manifest validation, frame-level IoU precision/recall/F1 benchmarking, and CSV export.
 - Local inference with no hosted AI API key; the first run may download pretrained weights unless cached.
 
 The baseline detects the generic COCO `person` class. Cricket-specific accuracy has not been established.
@@ -275,7 +275,7 @@ GitHub Actions runs the test suite on Python 3.10, 3.11 and 3.12. CI results mus
 
 Implemented: generic person detector, video annotation CLI, JSONL detections, shot-aware IoU tracking, shot-cut heuristic, configurable HSV team-colour hint, local upload dashboard, manifest validation, frame-level detection metrics, tests and CI configuration.
 
-Still not complete/validated: green CI run and full end-to-end smoke test; cricket-trained detection weights; ball detection/trajectory; calibrated field mapping; role/event inference; track-level team classification; labelled benchmark and match-level evaluation; model cards; complete third-party licence audit and final project licence selection. No accuracy or match-scoring claims are made.
+Still not complete/validated: green CI run and full end-to-end smoke test; cricket-trained detection weights; ball detection/trajectory; calibrated field mapping; role/event inference; track-level team classification; a legally usable labelled benchmark with measured results; model cards; complete third-party licence audit and software bill of materials. No accuracy or match-scoring claims are made.
 
 
 ## Integrated shot-aware analysis
