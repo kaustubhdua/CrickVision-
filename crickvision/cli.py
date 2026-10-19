@@ -124,6 +124,17 @@ def main() -> None:
         raise SystemExit(str(exc)) from exc
     args.output.parent.mkdir(parents=True, exist_ok=True)
     detections_path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        ball_detector = (
+            BallCandidateDetector(args.ball_min_radius, args.ball_max_radius)
+            if args.ball_candidates else None
+        )
+        ball_tracker = (
+            BallCandidateTracker(max_distance=args.ball_max_distance)
+            if args.ball_candidates else None
+        )
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from exc
 
     # Load the model before opening output resources, so model/download failures
     # cannot leave a half-created output file or an unreleased VideoWriter.
@@ -152,11 +163,6 @@ def main() -> None:
 
     tracker = IoUTracker()
     shot_detector = ShotBoundaryDetector(threshold=args.shot_threshold)
-    ball_detector = (
-        BallCandidateDetector(args.ball_min_radius, args.ball_max_radius)
-        if args.ball_candidates else None
-    )
-    ball_tracker = BallCandidateTracker(max_distance=args.ball_max_distance) if args.ball_candidates else None
     frame_index = processed = cuts = 0
     shot_id = 0
     try:
