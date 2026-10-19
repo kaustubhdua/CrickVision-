@@ -51,3 +51,25 @@ def test_person_box_dataset_rejects_match_split_leakage(tmp_path):
     ]), encoding="utf-8")
     with pytest.raises(ValueError, match="leaks across splits"):
         PersonBoxDataset(manifest, "train")
+
+def test_person_box_dataset_rejects_non_finite_box(tmp_path):
+    manifest = tmp_path / "data.jsonl"
+    manifest.write_text(json.dumps({
+        "image_path": "frame.png", "split": "train", "match_id": "match-train",
+        "boxes_xyxy": [[0, 0, float("nan"), 10]]
+    }), encoding="utf-8")
+    with pytest.raises(ValueError, match="finite"):
+        PersonBoxDataset(manifest, "train")
+
+
+def test_person_box_dataset_rejects_same_image_across_splits(tmp_path):
+    manifest = tmp_path / "data.jsonl"
+    rows = [
+        {"image_path": "same.png", "split": "train", "match_id": "match-train",
+         "boxes_xyxy": []},
+        {"image_path": "same.png", "split": "validation", "match_id": "match-val",
+         "boxes_xyxy": []},
+    ]
+    manifest.write_text("\n".join(json.dumps(row) for row in rows), encoding="utf-8")
+    with pytest.raises(ValueError, match="image_path leaks across splits"):
+        PersonBoxDataset(manifest, "train")
