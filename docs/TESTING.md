@@ -109,3 +109,11 @@ python -m crickvision.cli --input path/to/clip.mp4 --output runs/calibrated.mp4 
 ```
 
 The CLI records the homography and reprojection error and adds ground_xy to each person detection. The projected point is the bounding-box bottom-centre. A valid homography does not guarantee accurate field positions if the landmarks are wrong, the camera moves, the point is not on the calibrated plane, or the image is a close-up/replay. This does not provide 3D coordinates or airborne ball trajectories.
+
+## Experimental ball-candidate mode
+
+```bash
+python -m crickvision.cli --input path/to/clip.mp4 --output runs/candidates.mp4 --ball-candidates --ball-min-radius 1 --ball-max-radius 8
+```
+
+This opt-in mode proposes small circular regions using OpenCV HoughCircles and links nearby proposals into short tracklets. JSONL rows are labelled type=ball_candidate and status=unverified_candidate. The local-contrast score is a ranking heuristic, not a probability. Bright objects, graphics, highlights, and noise can all trigger proposals. Candidate track IDs are not proof of ball identity; this is not a validated ball detector, trajectory estimator, or delivery-event system.
