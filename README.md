@@ -104,11 +104,11 @@ When calibration passes its reprojection-error threshold, JSONL detections inclu
 Once you have a rights-cleared, manually labelled image dataset, prepare a JSONL manifest with one row per image:
 
 ```json
-{"image_path":"frames/train-001.jpg","split":"train","boxes_xyxy":[[40,25,95,240]]}
-{"image_path":"frames/validation-001.jpg","split":"validation","boxes_xyxy":[]}
+{"image_path":"frames/train-001.jpg","match_id":"match-001","split":"train","boxes_xyxy":[[40,25,95,240]]}
+{"image_path":"frames/validation-001.jpg","match_id":"match-002","split":"validation","boxes_xyxy":[]}
 ```
 
-Paths are relative to the manifest. Keep entire matches/sources in one split. Then fine-tune the person detector and use the resulting local checkpoint:
+Paths are relative to the manifest. Each train/validation/test row must include match_id, and all rows for one match must use the same split. Then fine-tune the person detector and use the resulting local checkpoint:
 
 ```bash
 crickvision-train-detector --manifest datasets/annotations/person-boxes.jsonl --output models/person-finetuned.pt --epochs 5
