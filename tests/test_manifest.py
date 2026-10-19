@@ -27,7 +27,7 @@ def test_rejects_match_leakage_across_splits(tmp_path):
             "rights_status": "licensed"}
     train = dict(base, clip_id="c1", split="train")
     test = dict(base, clip_id="c2", split="test")
-    p.write_text(json.dumps(train) + "\\n" + json.dumps(test), encoding="utf-8")
+    p.write_text(json.dumps(train) + "\n" + json.dumps(test), encoding="utf-8")
     assert any("leaks across splits" in error for error in validate_manifest(p))
 
 
@@ -42,5 +42,5 @@ def test_rejects_invalid_clip_time_range(tmp_path):
 
 def test_blank_manifest_is_empty(tmp_path):
     p = tmp_path / "manifest.jsonl"
-    p.write_text("  \\n\\n", encoding="utf-8")
+    p.write_text("  \n\n", encoding="utf-8")
     assert "manifest is empty" in validate_manifest(p)
