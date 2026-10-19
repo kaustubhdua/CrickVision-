@@ -25,6 +25,7 @@ class TrackedBallCandidate:
     track_id: int
     candidate: BallCandidate
     age: int
+    history_xy: tuple[tuple[float, float], ...]
 
 
 @dataclass
@@ -33,6 +34,7 @@ class _BallTrack:
     candidate: BallCandidate
     age: int = 1
     missed: int = 0
+    history_xy: list[tuple[float, float]] | None = None
 
 
 class BallCandidateDetector:
@@ -155,11 +157,18 @@ class BallCandidateTracker:
             if track_id is None:
                 track_id = self._next_id
                 self._next_id += 1
-                self._tracks[track_id] = _BallTrack(track_id, candidate)
+                self._tracks[track_id] = _BallTrack(
+                    track_id, candidate, history_xy=[(candidate.x, candidate.y)]
+                )
             else:
                 track = self._tracks[track_id]
                 track.candidate = candidate
                 track.age += 1
                 track.missed = 0
-            output.append(TrackedBallCandidate(track_id, candidate, self._tracks[track_id].age))
+                if track.history_xy is None:
+                    track.history_xy = []
+                track.history_xy.append((candidate.x, candidate.y))
+            track = self._tracks[track_id]
+            history = tuple(track.history_xy or [(candidate.x, candidate.y)])
+            output.append(TrackedBallCandidate(track_id, candidate, track.age, history))
         return output
