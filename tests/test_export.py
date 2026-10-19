@@ -18,6 +18,7 @@ def test_export_detection_and_shot_records(tmp_path):
                     "timestamp_ms": 160, "score": 0.8}),
         json.dumps({"type": "ball_candidate", "frame_index": 6, "center_xy": [20.5, 30.5],
                     "radius": 3.0, "candidate_score": 0.7, "ball_track_id": 2,
+                    "candidate_path_xy": [[18, 28], [20.5, 30.5]],
                     "status": "unverified_candidate"}),
     ]) + "\n", encoding="utf-8")
     assert export_csv(source, destination) == 3
@@ -32,6 +33,7 @@ def test_export_detection_and_shot_records(tmp_path):
     assert rows[2]["center_x"] == "20.5"
     assert rows[2]["center_y"] == "30.5"
     assert rows[2]["ball_track_id"] == "2"
+    assert "20.5" in rows[2]["candidate_path_xy"]
     assert rows[2]["status"] == "unverified_candidate"
 
 
