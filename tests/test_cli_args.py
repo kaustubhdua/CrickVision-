@@ -70,3 +70,11 @@ def test_reject_invalid_team_colour_range(tmp_path):
     ]}), encoding="utf-8")
     with pytest.raises(SystemExit, match="lower HSV"):
         load_team_colors(config)
+
+def test_timestamp_falls_back_from_non_finite_decoder_time():
+    class Capture:
+        @staticmethod
+        def get(_property):
+            return float("nan")
+
+    assert _timestamp_ms(Capture(), 50, 25.0) == 2000.0
