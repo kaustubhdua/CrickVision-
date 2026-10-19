@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 from pathlib import Path
 
 import cv2
@@ -90,8 +91,8 @@ def load_team_colors(path: Path | None) -> tuple[TeamColourConfig, ...]:
 
 def _timestamp_ms(capture: cv2.VideoCapture, frame_index: int, fps: float) -> float:
     """Use decoder time when available, otherwise derive time from frame index."""
-    timestamp = capture.get(cv2.CAP_PROP_POS_MSEC)
-    if frame_index > 0 and (timestamp <= 0 or not timestamp == timestamp):
+    timestamp = float(capture.get(cv2.CAP_PROP_POS_MSEC))
+    if not math.isfinite(timestamp) or timestamp < 0 or (frame_index > 0 and timestamp == 0):
         timestamp = frame_index * 1000.0 / fps
     return max(0.0, float(timestamp))
 
@@ -126,7 +127,7 @@ def main() -> None:
         raise SystemExit(f"Could not open video: {args.input}")
 
     fps = capture.get(cv2.CAP_PROP_FPS)
-    if not fps > 0:
+    if not math.isfinite(fps) or fps <= 0:
         fps = 25.0
     width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
