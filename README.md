@@ -347,7 +347,7 @@ streamlit run crickvision/dashboard.py
 
 The dashboard runs processing as a local subprocess. It is intended for a single trusted user, not public multi-user hosting. Large video uploads can consume substantial RAM, disk and compute.
 
-For the current testing instructions and release gates, see [docs/TESTING.md](docs/TESTING.md). JSONL record contracts and benchmark annotation examples are documented in [docs/SCHEMA.md](docs/SCHEMA.md).
+For the current testing instructions and release gates, see [docs/TESTING.md](docs/TESTING.md). JSONL record contracts and benchmark annotation examples are documented in [docs/SCHEMA.md](docs/SCHEMA.md); dataset source suitability and licence gates are in [docs/DATASET_AUDIT.md](docs/DATASET_AUDIT.md).
 
 
 ## Dataset governance and evaluation utilities
