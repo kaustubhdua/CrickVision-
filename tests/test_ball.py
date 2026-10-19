@@ -27,6 +27,7 @@ def test_ball_candidate_tracker_links_nearby_candidates_and_resets():
     second = tracker.update([BallCandidate(12, 11, 3, 0.7)])[0]
     assert first.track_id == second.track_id
     assert second.age == 2
+    assert second.history_xy == ((10, 10), (12, 11))
     tracker.reset()
     third = tracker.update([BallCandidate(12, 11, 3, 0.7)])[0]
     assert third.track_id != second.track_id
