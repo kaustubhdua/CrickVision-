@@ -261,3 +261,25 @@ GitHub Actions runs the test suite on Python 3.10, 3.11 and 3.12. CI results mus
 Implemented: generic person detector, video annotation CLI, JSONL detections, standalone IoU tracking, shot-cut heuristic, configurable HSV team-colour hint, initial tests and CI.
 
 Still not complete/validated: cricket-trained detection weights, ball detection/trajectory, calibrated field mapping, role/event inference, dashboard, labelled benchmark, match-level evaluation, model cards and final project licence selection. No accuracy or match-scoring claims are made.
+
+
+## Integrated shot-aware analysis
+
+The video CLI now combines person detection with the experimental IoU tracker and frame-difference shot-boundary heuristic. Track IDs are reset when a cut is flagged. The JSONL stream includes `person_detection` and `shot_boundary` record types. Since cut detection is heuristic, inspect results manually and tune `--shot-threshold` for the video source.
+
+```bash
+python -m crickvision.cli --input match.mp4 --output runs/annotated.mp4 --every-n-frames 2
+```
+
+Use `--no-tracking` to disable tracking or `--shot-threshold 0.35` to adjust the cut heuristic. Track IDs are temporary within a shot and are not player identities.
+
+## Optional local dashboard
+
+```bash
+python -m pip install -e ".[dashboard]"
+streamlit run crickvision/dashboard.py
+```
+
+The dashboard runs processing as a local subprocess. It is intended for a single trusted user, not public multi-user hosting. Large video uploads can consume substantial RAM, disk and compute.
+
+For the current testing instructions and release gates, see [docs/TESTING.md](docs/TESTING.md).
