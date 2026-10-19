@@ -14,6 +14,7 @@ from crickvision.shot import ShotBoundaryDetector
 from crickvision.tracker import IoUTracker
 from crickvision.team import TeamColourConfig, classify_team_colour
 from crickvision.calibration import load_calibration_config, project_bbox_footpoint
+from crickvision.ball import BallCandidateDetector, BallCandidateTracker
 
 
 def parse_args() -> argparse.Namespace:
@@ -37,6 +38,12 @@ def parse_args() -> argparse.Namespace:
                         help="Optional JSON config with team names and HSV lower/upper ranges")
     parser.add_argument("--calibration", type=Path, default=None,
                         help="Optional manual planar homography config for ground coordinates")
+    parser.add_argument("--ball-candidates", action="store_true",
+                        help="Enable experimental Hough-circle ball-like candidates")
+    parser.add_argument("--ball-min-radius", type=int, default=1)
+    parser.add_argument("--ball-max-radius", type=int, default=8)
+    parser.add_argument("--ball-max-distance", type=float, default=60.0,
+                        help="Maximum pixel displacement for candidate tracklet association")
     return parser.parse_args()
 
 
@@ -145,6 +152,11 @@ def main() -> None:
 
     tracker = IoUTracker()
     shot_detector = ShotBoundaryDetector(threshold=args.shot_threshold)
+    ball_detector = (
+        BallCandidateDetector(args.ball_min_radius, args.ball_max_radius)
+        if args.ball_candidates else None
+    )
+    ball_tracker = BallCandidateTracker(max_distance=args.ball_max_distance) if args.ball_candidates else None
     frame_index = processed = cuts = 0
     shot_id = 0
     try:
@@ -168,6 +180,8 @@ def main() -> None:
                 is_cut, cut_score = shot_detector.update(frame)
                 if is_cut:
                     tracker.reset()
+                    if ball_tracker is not None:
+                        ball_tracker.reset()
                     cuts += 1
                     shot_id += 1
                     output.write(json.dumps({
@@ -235,6 +249,27 @@ def main() -> None:
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.55,
                                     (40, 220, 90), 2, cv2.LINE_AA)
                         output.write(json.dumps(record, ensure_ascii=False) + "\n")
+                    if ball_detector is not None and ball_tracker is not None:
+                        ball_candidates = ball_detector.detect(frame)
+                        for ball_track in ball_tracker.update(ball_candidates):
+                            candidate = ball_track.candidate
+                            centre = (int(round(candidate.x)), int(round(candidate.y)))
+                            radius = max(1, int(round(candidate.radius)))
+                            cv2.circle(frame, centre, radius, (255, 80, 20), 2, cv2.LINE_AA)
+                            output.write(json.dumps({
+                                "schema_version": 1,
+                                "video_id": args.input.stem,
+                                "type": "ball_candidate",
+                                "shot_id": shot_id,
+                                "frame_index": frame_index,
+                                "timestamp_ms": round(timestamp_ms, 3),
+                                "center_xy": [candidate.x, candidate.y],
+                                "radius": candidate.radius,
+                                "candidate_score": candidate.score,
+                                "ball_track_id": ball_track.track_id,
+                                "track_age": ball_track.age,
+                                "status": "unverified_candidate",
+                            }, ensure_ascii=False) + "\n")
                 writer.write(frame)
                 frame_index += 1
     finally:
