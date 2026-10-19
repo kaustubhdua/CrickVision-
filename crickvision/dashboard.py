@@ -52,10 +52,16 @@ if uploaded is not None:
             ]
             if not tracking:
                 command.append("--no-tracking")
-            with st.spinner("Processing video locally. CPU inference can be slow…"):
-                result = subprocess.run(
-                    command, capture_output=True, text=True, timeout=60 * 60, check=False
-                )
+            try:
+                with st.spinner("Processing video locally. CPU inference can be slow…"):
+                    result = subprocess.run(
+                        command, capture_output=True, text=True,
+                        timeout=60 * 60, check=False,
+                    )
+            except subprocess.TimeoutExpired:
+                st.error("Processing exceeded the one-hour dashboard limit.")
+                st.info("Try a shorter clip or analyse fewer frames by increasing N.")
+                st.stop()
             if result.returncode != 0:
                 st.error("Video processing failed.")
                 st.code((result.stderr or result.stdout or "No diagnostic output")[-12000:])
