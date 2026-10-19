@@ -60,7 +60,7 @@ Do not describe the project as production-ready until all of these are complete:
 3. Cricket-specific detection and ball tracking are trained/evaluated on documented data, or clearly remain out of scope.
 4. Tracking, team classification, shot segmentation, field calibration, and event inference have task-appropriate held-out evaluation.
 5. Dependency, checkpoint, dataset, and footage rights have been reviewed.
-6. The project licence is selected and represented consistently in repository metadata and notices.
+6. The original-code MIT licence is represented consistently and third-party/model/data terms are audited.
 7. Security/privacy review, bounded processing, error handling, and documentation match the actual release surface.
 
 Passing unit tests alone does not establish cricket accuracy or production readiness.
