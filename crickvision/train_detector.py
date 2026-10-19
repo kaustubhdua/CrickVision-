@@ -39,7 +39,20 @@ class PersonBoxDataset(Dataset):
                 raise ValueError(f"manifest line {line_no}: invalid JSON") from exc
             if not isinstance(row, dict):
                 raise ValueError(f"manifest line {line_no}: expected an object")
-            if row.get("split") != split:
+            row_split = row.get("split")
+            if row_split in {"train", "validation", "test"}:
+                match_id = row.get("match_id")
+                if not isinstance(match_id, str) or not match_id.strip():
+                    raise ValueError(f"manifest line {line_no}: match_id is required for split integrity")
+                previous_split = getattr(self, "_match_splits", {}).get(match_id)
+                if previous_split is not None and previous_split != row_split:
+                    raise ValueError(
+                        f"manifest line {line_no}: match_id {match_id!r} leaks across splits"
+                    )
+                if not hasattr(self, "_match_splits"):
+                    self._match_splits = {}
+                self._match_splits[match_id] = row_split
+            if row_split != split:
                 continue
             image_path = row.get("image_path")
             boxes = row.get("boxes_xyxy")
