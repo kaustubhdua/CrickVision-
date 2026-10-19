@@ -1,0 +1,37 @@
+name: Bug report
+description: Report a reproducible defect in CrickVision.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: "Do not upload copyrighted broadcast footage, private media, checkpoints, or secrets."
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the observed behaviour and what you expected.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Include the exact command with private paths redacted.
+      placeholder: "1. Install ... 2. Run ... 3. Observe ..."
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Python, OS, PyTorch, Torchvision and OpenCV versions.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Redacted error output
+      description: Remove personal data, tokens and private paths.
+    validations:
+      required: false
