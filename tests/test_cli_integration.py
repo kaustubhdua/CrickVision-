@@ -3,6 +3,7 @@ import sys
 
 import cv2
 import numpy as np
+import pytest
 
 from crickvision.cli import main
 from crickvision.detector import PersonDetection
@@ -93,7 +94,7 @@ def test_cli_end_to_end_with_synthetic_frames(tmp_path, monkeypatch):
     assert len(people) == 2
     assert len(cuts) == 1
     assert len(calibration_records) == 1
-    assert people[0]["ground_xy"] == [7.0, 22.0]
+    assert people[0]["ground_xy"] == pytest.approx([7.0, 22.0])
     assert people[0]["video_id"] == "synthetic"
     assert people[0]["shot_id"] == 0
     assert people[1]["shot_id"] == 1
