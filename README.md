@@ -6,7 +6,7 @@ Version 0.3.0 · [Changelog](CHANGELOG.md) · [Release checklist](docs/RELEASE_C
 
 CrickVision is a local-first project to detect and track cricket players, classify teams, map field positions, and progressively analyse the ball and delivery events from video. The long-term goal is a reproducible, well-tested toolkit for developers, researchers, coaches, and cricket analysts.
 
-> **Current status: experimental prototype (v0.3).** The default pipeline runs a general-purpose pretrained person detector, heuristic shot-cut detection, and optional IoU tracking. An optional HSV kit-colour hint can be enabled with user-provided ranges, but it is not a learned classifier and has not been validated on match footage. There is no cricket-trained detector, ball tracking, calibrated field mapping, event intelligence, or measured cricket benchmark. Do not treat outputs as official match statistics.
+> **Current status: experimental prototype (v0.3).** The default pipeline runs a general-purpose pretrained person detector, heuristic shot-cut detection, and optional IoU tracking. An optional HSV kit-colour hint can be enabled with user-provided ranges, but it is not a learned classifier and has not been validated on match footage. There is no cricket-trained checkpoint, ball tracking, automatic landmark detection, validated field mapping, event intelligence, or measured cricket benchmark. Manual planar homography projection is available when the user supplies valid point correspondences. Do not treat outputs as official match statistics.
 
 ## Project goals
 
@@ -26,6 +26,7 @@ CrickVision is a local-first project to detect and track cricket players, classi
 - JSONL records for person detections and heuristic shot boundaries; optional track IDs are temporary and may switch.
 - A local Streamlit dashboard for a single trusted user.
 - JSONL dataset-manifest validation, frame-level IoU precision/recall/F1 benchmarking, and CSV export.
+- Optional manual planar homography calibration to project person-box footpoints into user-defined ground coordinates.
 - Local inference with no hosted AI API key; the first run may download pretrained weights unless cached.
 - A fine-tuning starter workflow for person boxes, custom checkpoint loading, benchmark reports, and CSV exports.
 
@@ -88,6 +89,16 @@ Optional team-colour hints can be enabled with a user-created JSON config. HSV r
 Run with `--team-colors configs/team-colors.json`. Each detection JSONL record then includes `team` and `team_colour_fraction`; ambiguous or weak colour evidence is labelled `Unknown`. The HSV hue channel uses OpenCV's 0–179 range. Do not use these labels as official team identity without manual review.
 
 
+### Optional manual field calibration
+
+If you have at least four corresponding points from a fixed camera view on the same ground plane, create a calibration config based on [the example](configs/calibration.example.json), replacing the example coordinates with measured correspondences. Ground coordinates can use any consistent unit; the error threshold uses those same units.
+
+```bash
+python -m crickvision.cli --input match.mp4 --output runs/calibrated.mp4 --calibration configs/calibration.json
+```
+
+When calibration passes its reprojection-error threshold, JSONL detections include `ground_xy` for the bottom-centre of each person box. This is a manual planar estimate, not automatic pitch detection or 3D reconstruction. Do not use it for airborne ball positions or views where the ground plane/camera calibration is invalid.
+
 ### Fine-tune a person detector
 
 Once you have a rights-cleared, manually labelled image dataset, prepare a JSONL manifest with one row per image:
@@ -144,7 +155,8 @@ This training workflow learns the single person class; it does not train a ball 
 ### Phase 4 — Cricket field geometry
 - [ ] Define cricket-specific landmarks: pitch corners, creases, wickets, boundary cues.
 - [ ] Annotate and evaluate landmark detection.
-- [ ] Estimate planar homographies for suitable ground views and track calibration quality.
+- [x] Estimate a manual planar homography from user-provided point correspondences and reject calibration above a configured reprojection-error threshold.
+- [ ] Automate landmark detection and validate ground-position error on held-out calibrated shots.
 - [ ] Project player footpoints to a field map only when calibration is valid.
 - [ ] Mark measurements unavailable when geometry is uncertain; do not infer 3D positions from a planar homography.
 - **Exit gate:** measured landmark and ground-position error on held-out calibrated shots.
@@ -298,7 +310,7 @@ GitHub Actions runs the test suite on Python 3.10, 3.11 and 3.12. CI results mus
 
 Implemented: generic person detector, video annotation CLI, JSONL detections, shot-aware IoU tracking, shot-cut heuristic, configurable HSV team-colour hint, local upload dashboard, manifest validation, frame-level detection metrics, tests and CI configuration.
 
-Still not complete/validated: green CI run and full real-video smoke test; cricket-specific model training on rights-cleared labelled data; ball detection/trajectory; calibrated field mapping; role/event inference; track-level team classification; a legally usable labelled benchmark with measured results; complete third-party licence audit and software bill of materials. No accuracy or match-scoring claims are made.
+Still not complete/validated: green CI run and full real-video smoke test; cricket-specific model training on rights-cleared labelled data; ball detection/trajectory; automatic landmark detection and validated field mapping; role/event inference; track-level team classification; a legally usable labelled benchmark with measured results; complete third-party licence audit and software bill of materials. No accuracy or match-scoring claims are made.
 
 
 ## Integrated shot-aware analysis
