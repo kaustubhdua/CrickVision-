@@ -201,7 +201,8 @@ def main() -> None:
                             if team_name != "Unknown":
                                 label = f"{team_name} {label}"
                         if track is not None:
-                            label = f"ID {track.track_id} {detection.confidence:.2f}"
+                            team_prefix = f"{record['team']} " if record.get("team") not in (None, "Unknown") else ""
+                            label = f"ID {track.track_id} {team_prefix}{detection.confidence:.2f}"
                             record.update({"track_id": track.track_id, "track_age": track.age})
                         cv2.rectangle(frame, (x1, y1), (x2, y2), (40, 220, 90), 2)
                         cv2.putText(frame, label, (x1, max(18, y1 - 7)),
