@@ -9,7 +9,7 @@ from pathlib import Path
 FIELDS = [
     "video_id", "shot_id", "frame_index", "timestamp_ms", "type", "class",
     "x1", "y1", "x2", "y2", "confidence", "track_id", "track_age",
-    "team", "team_colour_fraction", "shot_score",
+    "team", "team_colour_fraction", "shot_score", "ground_x", "ground_y",
 ]
 
 
@@ -44,6 +44,9 @@ def export_csv(source: Path, destination: Path) -> int:
                     row[key] = value
             if record.get("type") == "shot_boundary":
                 row["shot_score"] = record.get("score", "")
+            ground = record.get("ground_xy")
+            if isinstance(ground, list) and len(ground) == 2:
+                row["ground_x"], row["ground_y"] = ground
             writer.writerow(row)
             count += 1
     return count
