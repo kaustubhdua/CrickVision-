@@ -5,7 +5,7 @@
 
 CrickVision is a local-first project to detect and track cricket players, classify teams, map field positions, and progressively analyse the ball and delivery events from video. The long-term goal is a reproducible, well-tested toolkit for developers, researchers, coaches, and cricket analysts.
 
-> **Current status: experimental prototype (v0.2).** The default pipeline runs a general-purpose pretrained person detector, heuristic shot-cut detection, and optional IoU tracking. A standalone HSV kit-colour helper is available, but it is not integrated into the CLI or validated on match footage. There is no cricket-trained detector, ball tracking, calibrated field mapping, event intelligence, or measured cricket benchmark. Do not treat outputs as official match statistics.
+> **Current status: experimental prototype (v0.2).** The default pipeline runs a general-purpose pretrained person detector, heuristic shot-cut detection, and optional IoU tracking. An optional HSV kit-colour hint can be enabled with user-provided ranges, but it is not a learned classifier and has not been validated on match footage. There is no cricket-trained detector, ball tracking, calibrated field mapping, event intelligence, or measured cricket benchmark. Do not treat outputs as official match statistics.
 
 ## Project goals
 
@@ -71,6 +71,19 @@ python -m crickvision.cli --input match.mp4 --output runs/annotated.mp4 \
 - `--device`: `auto`, `cpu`, or `cuda` (default: `auto`; CUDA requires a compatible PyTorch installation).
 
 The output video shows detections with experimental, temporary IoU track IDs unless `--no-tracking` is passed. IDs can switch under occlusion, camera movement, and missed detections; they are not player identities.
+
+Optional team-colour hints can be enabled with a user-created JSON config. HSV ranges must be tuned for the source video and are **not** a reliable learned team classifier:
+
+```json
+{
+  "teams": [
+    {"name": "Team A", "hsv_lower": [90, 70, 40], "hsv_upper": [130, 255, 255]},
+    {"name": "Team B", "hsv_lower": [0, 80, 60], "hsv_upper": [12, 255, 255]}
+  ]
+}
+```
+
+Run with `--team-colors configs/team-colors.json`. Each detection JSONL record then includes `team` and `team_colour_fraction`; ambiguous or weak colour evidence is labelled `Unknown`. The HSV hue channel uses OpenCV's 0–179 range. Do not use these labels as official team identity without manual review.
 
 ## Architecture roadmap
 
@@ -246,7 +259,7 @@ The repository now also includes reusable, explicitly experimental modules:
 - `crickvision.shot.ShotBoundaryDetector`: frame-difference cut heuristic. Fast motion, flashes and replays can cause false positives.
 - `crickvision.team.classify_team_colour`: configurable HSV kit-colour hint from a torso crop. Requires user-defined HSV ranges and can return `Unknown`; it is not a learned classifier.
 
-These APIs are intentionally modular and are not yet presented as a validated end-to-end match analytics system. The current default video CLI combines person detection, a shot-cut heuristic, and experimental IoU tracking. Team-colour classification remains a separate helper. See tests for deterministic synthetic examples.
+These APIs are intentionally modular and are not yet presented as a validated end-to-end match analytics system. The current default video CLI combines person detection, a shot-cut heuristic, and experimental IoU tracking. Team-colour hints can be integrated with `--team-colors`; the output remains heuristic and unvalidated. See tests for deterministic synthetic examples.
 
 ### Development and tests
 
