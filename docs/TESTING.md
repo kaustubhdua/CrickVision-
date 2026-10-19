@@ -64,3 +64,20 @@ Do not describe the project as production-ready until all of these are complete:
 7. Security/privacy review, bounded processing, error handling, and documentation match the actual release surface.
 
 Passing unit tests alone does not establish cricket accuracy or production readiness.
+
+## Reproducible detection benchmark
+
+Ground-truth JSONL contains one row per labelled person box, using original source frame indices:
+
+```json
+{"video_id":"match-001","frame_index":120,"bbox_xyxy":[100,50,180,320]}
+```
+
+Create predictions with the CLI, then evaluate:
+
+```bash
+crickvision-benchmark --predictions runs/detections.jsonl --ground-truth datasets/annotations/heldout.jsonl --iou-threshold 0.5 --output runs/benchmark.json
+crickvision-export --input runs/detections.jsonl --output runs/detections.csv
+```
+
+Rows without `video_id` use the shared ID `default`; ensure you use distinct `video_id` values if combining multiple videos. Every annotated ground-truth box should be a separate row. Frames with no visible people should be represented in the annotation protocol; because the current format uses box rows, use a separate frame index manifest to record exhaustive empty frames and ensure they were reviewed. The evaluator reports aggregate greedy IoU precision/recall/F1 and per-frame results. It is not AP/mAP and should not be compared to published COCO scores.
