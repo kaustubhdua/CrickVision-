@@ -65,11 +65,17 @@ def test_cli_end_to_end_with_synthetic_frames(tmp_path, monkeypatch):
     source.touch()
     output = tmp_path / "annotated.mp4"
     detections = tmp_path / "detections.jsonl"
+    calibration = tmp_path / "calibration.json"
+    calibration.write_text(json.dumps({
+        "image_points_px": [[0, 0], [39, 0], [39, 29], [0, 29]],
+        "ground_points": [[0, 0], [39, 0], [39, 29], [0, 29]],
+        "max_reprojection_error": 0.01,
+    }), encoding="utf-8")
     writer = FakeWriter()
 
     monkeypatch.setattr(sys, "argv", [
         "crickvision", "--input", str(source), "--output", str(output),
-        "--detections", str(detections),
+        "--detections", str(detections), "--calibration", str(calibration),
     ])
     monkeypatch.setattr(cv2, "VideoCapture", FakeCapture)
     monkeypatch.setattr(cv2, "VideoWriter", lambda *args: writer)
@@ -82,9 +88,12 @@ def test_cli_end_to_end_with_synthetic_frames(tmp_path, monkeypatch):
     records = [json.loads(line) for line in detections.read_text(encoding="utf-8").splitlines()]
     people = [record for record in records if record["type"] == "person_detection"]
     cuts = [record for record in records if record["type"] == "shot_boundary"]
+    calibration_records = [record for record in records if record["type"] == "calibration"]
     assert len(writer.frames) == 2
     assert len(people) == 2
     assert len(cuts) == 1
+    assert len(calibration_records) == 1
+    assert people[0]["ground_xy"] == [7.0, 22.0]
     assert people[0]["video_id"] == "synthetic"
     assert people[0]["shot_id"] == 0
     assert people[1]["shot_id"] == 1
