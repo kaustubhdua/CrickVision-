@@ -62,3 +62,16 @@ def test_benchmark_counts_false_positives_on_empty_annotated_frame(tmp_path):
     assert report["false_positives"] == 1
     assert report["false_negatives"] == 0
     assert report["precision"] == 0.0
+
+def test_benchmark_ignores_unannotated_prediction_frames(tmp_path):
+    pred = tmp_path / "pred.jsonl"
+    gt = tmp_path / "gt.jsonl"
+    write_jsonl(pred, [
+        {"frame_index": 0, "bbox_xyxy": [0, 0, 10, 10]},
+        {"frame_index": 1, "bbox_xyxy": [20, 20, 30, 30]},
+    ])
+    write_jsonl(gt, [{"frame_index": 0, "bbox_xyxy": [0, 0, 10, 10]}])
+    report = evaluate_jsonl(pred, gt)
+    assert report["evaluated_frames"] == 1
+    assert report["true_positives"] == 1
+    assert report["false_positives"] == 0
