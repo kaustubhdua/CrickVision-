@@ -20,6 +20,7 @@ def test_parser_defaults(monkeypatch):
     assert args.every_n_frames == 1
     assert args.device == "auto"
     assert args.no_tracking is False
+    assert args.ball_candidates is False
 
 
 def test_paths_must_not_overwrite_input(tmp_path):
