@@ -133,7 +133,7 @@ This training workflow learns the single person class; it does not train a ball 
 
 ### Phase 3 — Team and official classification
 - [x] Add a configurable HSV torso-colour heuristic; track-level aggregation and evaluation remain open.
-- [ ] Support user-configured team colours and Team A / Team B / Official / Unknown labels.
+- [x] Support user-configured HSV team-colour hints and Unknown results; Official/player roles remain unimplemented.
 - [ ] Aggregate predictions over tracklets rather than single frames.
 - [ ] Evaluate similar kits, white-clothing Test cricket, helmets/pads, lighting changes, and officials.
 - [ ] Add confidence thresholds and manual correction.
@@ -166,7 +166,7 @@ This training workflow learns the single person class; it does not train a ball 
 ### Phase 7 — Analytics application
 - [x] Add an initial local dashboard for video upload, processing, and downloads; playback, field map, event timeline and robust job management remain open.
 - [ ] Add side-by-side original/annotated video and track inspection.
-- [ ] Export JSON, CSV, annotated MP4, and benchmark reports.
+- [x] Export JSONL observations, CSV tables, annotated MP4, and JSON benchmark reports.
 - [ ] Add job cancellation, resumable processing, caching, and bounded memory use.
 - [ ] Keep inference separate from UI and provide a command-line workflow.
 - **Exit gate:** end-to-end local workflow with tests and documented limitations.
@@ -243,7 +243,7 @@ All results should include dataset size, match-level splits, model/checkpoint ha
 
 ## Licensing and model provenance
 
-- CrickVision's own licence has not yet been selected. Choose it after reviewing the complete dependency and distribution plan.
+- The root LICENSE applies MIT to original CrickVision code and project-authored documentation. Third-party code, pretrained weights, datasets, and broadcast footage retain their own terms.
 - Torchvision's code licence and the selected pretrained weights' terms are distinct questions; review the applicable PyTorch/Torchvision and COCO asset terms before redistribution.
 - Every future detector/tracker, checkpoint, dataset subset, and third-party asset needs its own licence/provenance record.
 - Do not commit copyrighted broadcast footage or model weights unless their terms permit it.
@@ -271,7 +271,7 @@ The expanded research document defines the product scope, module requirements, a
 It distinguishes the current generic person-detection baseline from planned features and sets release gates so we do not claim tracking, team classification, ball trajectories, or accuracy before those capabilities are implemented and benchmarked.
 
 
-## Experimental analysis modules (v0.2)
+## Experimental analysis modules (v0.3)
 
 The repository now also includes reusable, explicitly experimental modules:
 
