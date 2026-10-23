@@ -20,7 +20,7 @@ class FakeCapture:
         if prop == sample_frames.cv2.CAP_PROP_FPS:
             return self.fps
         if prop == sample_frames.cv2.CAP_PROP_POS_MSEC:
-            return self.index * 100.0
+            return max(0, self.index - 1) * 100.0
         return 0
 
     def read(self):
