@@ -119,6 +119,17 @@ python -m crickvision.cli --input match.mp4 --output runs/candidates.mp4 --ball-
 
 This optional mode uses Hough circles to propose small circular image regions and links nearby proposals into short tracklets. It draws candidate trails and writes JSONL rows with `status: "unverified_candidate"`. Bright objects, highlights, graphics, and noise can all trigger false positives; the score is a local-contrast ranking heuristic, not a probability. These paths are not reliable ball identities or physical trajectories.
 
+
+### Audit training labels before fine-tuning
+
+Run the preflight audit to check JSONL structure, safe image paths, decoded images, bounding-box bounds, duplicate paths, match-disjoint splits and rights metadata:
+
+```bash
+crickvision-audit-dataset datasets/annotations/person-boxes.jsonl
+```
+
+See [training-manifest audit details](docs/TRAINING_MANIFEST_AUDIT.md). This validates data structure; it does not verify annotation correctness or legal permission.
+
 ### Fine-tune a person detector
 
 Once you have a rights-cleared, manually labelled image dataset, prepare a JSONL manifest with one row per image:
