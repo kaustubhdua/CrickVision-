@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 from pathlib import Path
 from typing import Any
 
@@ -20,14 +21,24 @@ def validate_record(record: Any, line_number: int) -> list[str]:
             errors.append(f"line {line_number}: {key!r} must be a non-empty string")
     if isinstance(record.get("split"), str) and record["split"] not in ALLOWED_SPLITS:
         errors.append(f"line {line_number}: split must be train, validation, test, or unassigned")
-    if isinstance(record.get("rights_status"), str) and record["rights_status"] not in ALLOWED_RIGHTS:
+    rights = record.get("rights_status")
+    if isinstance(rights, str) and rights not in ALLOWED_RIGHTS:
         errors.append(f"line {line_number}: unsupported rights_status")
+    elif rights == "prohibited":
+        errors.append(f"line {line_number}: source is marked prohibited and cannot be used")
     for key in ("clip_start_ms", "clip_end_ms"):
         value = record.get(key)
-        if value is not None and (not isinstance(value, (int, float)) or value < 0):
-            errors.append(f"line {line_number}: {key} must be a non-negative number")
+        if value is not None and (
+            isinstance(value, bool) or not isinstance(value, (int, float))
+            or not math.isfinite(value) or value < 0
+        ):
+            errors.append(f"line {line_number}: {key} must be a finite non-negative number")
     start, end = record.get("clip_start_ms"), record.get("clip_end_ms")
-    if isinstance(start, (int, float)) and isinstance(end, (int, float)) and end <= start:
+    if (
+        isinstance(start, (int, float)) and not isinstance(start, bool) and math.isfinite(start)
+        and isinstance(end, (int, float)) and not isinstance(end, bool) and math.isfinite(end)
+        and end <= start
+    ):
         errors.append(f"line {line_number}: clip_end_ms must be greater than clip_start_ms")
     return errors
 
@@ -73,7 +84,7 @@ def validate_manifest(path: Path) -> list[str]:
             else:
                 match_splits[match_id] = split
 
-        if split == "test" and record.get("rights_status") in {"unknown", "prohibited"}:
+        if split == "test" and record.get("rights_status") == "unknown":
             errors.append(f"line {number}: test asset rights must be reviewed before use")
 
     if nonempty_count == 0:
