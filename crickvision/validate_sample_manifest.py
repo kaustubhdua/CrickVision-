@@ -93,7 +93,7 @@ def validate_sample_manifest(
             errors.append(f"{prefix} sampling_interval_ms must be a finite positive number")
 
         rights = record.get("rights_status")
-        if rights not in RIGHTS:
+        if not isinstance(rights, str) or rights not in RIGHTS:
             errors.append(f"{prefix} unsupported rights_status")
         elif rights == "prohibited":
             errors.append(f"{prefix} source is marked prohibited")
