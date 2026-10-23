@@ -16,7 +16,7 @@ def write_manifest(path, rows):
 
 def row(image="frames/a.jpg", match="m1", split="train", boxes=None, **extra):
     result = {"image_path": image, "match_id": match, "split": split,
-              "boxes_xyxy": [[1, 2, 10, 20]] if boxes is None else boxes}
+              "boxes_xyxy": [[1, 2, 10, 20]] if boxes is None else boxes, "rights_status": "licensed"}
     result.update(extra)
     return result
 
@@ -67,3 +67,14 @@ def test_prohibited_rights_fail_closed(tmp_path):
     result = audit_training_manifest(manifest)
     assert not result["valid"]
     assert any("marked prohibited" in error for error in result["errors"])
+
+
+def test_requires_explicit_rights_metadata(tmp_path):
+    write_image(tmp_path / "a.jpg")
+    manifest = tmp_path / "labels.jsonl"
+    record = row("a.jpg")
+    record.pop("rights_status")
+    write_manifest(manifest, [record])
+    result = audit_training_manifest(manifest)
+    assert not result["valid"]
+    assert any("rights_status is required" in error for error in result["errors"])
