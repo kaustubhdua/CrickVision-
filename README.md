@@ -25,7 +25,7 @@ CrickVision is a local-first project to detect and track cricket players, classi
 - Configurable confidence threshold, frame sampling, device, and shot-cut threshold.
 - JSONL records for person detections and heuristic shot boundaries; optional track IDs are temporary and may switch.
 - A local Streamlit dashboard for a single trusted user.
-- JSONL dataset-manifest validation, frame-level IoU precision/recall/F1 benchmarking, and CSV export.
+- JSONL dataset-manifest validation, frame-level IoU precision/recall/F1 benchmarking, CSV export, and a provenance-aware video frame sampler for annotation preparation.
 - Optional manual planar homography calibration to project person-box footpoints into user-defined ground coordinates.
 - Opt-in Hough-circle ball-like candidate proposals and nearest-neighbour candidate tracklets, explicitly marked unverified.
 - Local inference with no hosted AI API key; the first run may download pretrained weights unless cached.
@@ -33,7 +33,7 @@ CrickVision is a local-first project to detect and track cricket players, classi
 
 The baseline detects the generic COCO `person` class. Cricket-specific accuracy has not been established.
 
-## Quick start
+## Prepare frames for manual annotation\n\nExtract timestamped frames and a SHA-256 provenance manifest from footage you are authorised to use:\n\n```bash\ncrickvision-sample-frames --input path/to/match.mp4 --output-dir datasets/working/match-001 --every-seconds 1 --video-id match-001 --rights-status licensed\n```\n\nThe output directory must be empty. The sampler writes JPEGs and `frames.jsonl`; the rights status is user-supplied metadata, not a legal verification. See [frame sampling and dataset preparation](docs/FRAME_SAMPLING.md).\n\n## Quick start
 
 ### 1. Requirements
 
