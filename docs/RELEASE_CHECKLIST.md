@@ -12,6 +12,7 @@ A release may be tagged only when every applicable gate below has evidence attac
 
 ## Data and models
 - [ ] Source video rights are recorded and permit the planned use.
+- [ ] Frame-sampler manifest records source hash, timestamps, frame indices, dimensions and rights status.
 - [ ] Dataset manifest validates; train/validation/test splits are match-disjoint.
 - [ ] Benchmark annotations were reviewed and held-out test matches were not used for tuning.
 - [ ] Model/checkpoint hash, configuration, environment, and training manifest are recorded.
