@@ -54,7 +54,7 @@ def test_rejects_path_traversal_and_out_of_bounds_boxes(tmp_path):
 def test_rights_metadata_is_not_treated_as_verified(tmp_path):
     write_image(tmp_path / "a.jpg")
     manifest = tmp_path / "labels.jsonl"
-    write_manifest(manifest, [row(rights_status="unknown")])
+    write_manifest(manifest, [row("a.jpg", rights_status="unknown")])
     result = audit_training_manifest(manifest)
     assert result["valid"]
     assert any("rights are unknown" in warning for warning in result["warnings"])
@@ -63,7 +63,7 @@ def test_rights_metadata_is_not_treated_as_verified(tmp_path):
 def test_prohibited_rights_fail_closed(tmp_path):
     write_image(tmp_path / "a.jpg")
     manifest = tmp_path / "labels.jsonl"
-    write_manifest(manifest, [row(rights_status="prohibited")])
+    write_manifest(manifest, [row("a.jpg", rights_status="prohibited")])
     result = audit_training_manifest(manifest)
     assert not result["valid"]
     assert any("marked prohibited" in error for error in result["errors"])
