@@ -63,6 +63,6 @@ def test_rejects_non_finite_or_boolean_clip_times(tmp_path):
         dict(base, clip_id="bool", clip_start_ms=True),
         dict(base, clip_id="infinite", clip_end_ms=float("inf")),
     ]
-    p.write_text("\\n".join(json.dumps(row) for row in rows), encoding="utf-8")
+    p.write_text("\n".join(json.dumps(row) for row in rows), encoding="utf-8")
     errors = validate_manifest(p)
     assert sum("finite non-negative number" in error for error in errors) == 3
