@@ -37,4 +37,5 @@ jobs:
       - run: crickvision-train-detector --help
       - run: crickvision-sample-frames --help
       - run: crickvision-validate-samples --help
+      - run: crickvision-audit-dataset --help
       - run: python -m crickvision.cli --help
