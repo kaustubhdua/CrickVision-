@@ -23,6 +23,7 @@ crickvision-benchmark = "crickvision.benchmark:main"
 crickvision-export = "crickvision.export:main"
 crickvision-train-detector = "crickvision.train_detector:main"
 crickvision-sample-frames = "crickvision.sample_frames:main"
+crickvision-validate-samples = "crickvision.validate_sample_manifest:main"
 
 [tool.setuptools.packages.find]
 include = ["crickvision*"]
