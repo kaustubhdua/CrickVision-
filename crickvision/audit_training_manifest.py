@@ -84,15 +84,16 @@ def audit_training_manifest(manifest_path: Path, *, check_images: bool = True) -
             image_split[key] = split
 
         rights = row.get("rights_status")
-        if rights is not None:
-            if not isinstance(rights, str) or rights not in RIGHTS:
-                errors.append(f"{prefix} unsupported rights_status")
-            elif rights == "prohibited":
-                errors.append(f"{prefix} source is marked prohibited")
-            elif rights == "unknown":
-                warnings.append(f"{prefix} source rights are unknown; do not train or redistribute until reviewed")
-            elif rights == "research-only":
-                warnings.append(f"{prefix} research-only terms must permit the intended training use")
+        if rights is None:
+            errors.append(f"{prefix} rights_status is required; record owned, licensed, research-only, unknown, or prohibited")
+        elif not isinstance(rights, str) or rights not in RIGHTS:
+            errors.append(f"{prefix} unsupported rights_status")
+        elif rights == "prohibited":
+            errors.append(f"{prefix} source is marked prohibited")
+        elif rights == "unknown":
+            warnings.append(f"{prefix} source rights are unknown; do not train or redistribute until reviewed")
+        elif rights == "research-only":
+            warnings.append(f"{prefix} research-only terms must permit the intended training use")
 
         boxes = row.get("boxes_xyxy")
         checked_boxes: list[tuple[float, float, float, float]] = []
