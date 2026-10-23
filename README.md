@@ -33,7 +33,17 @@ CrickVision is a local-first project to detect and track cricket players, classi
 
 The baseline detects the generic COCO `person` class. Cricket-specific accuracy has not been established.
 
-## Prepare frames for manual annotation\n\nExtract timestamped frames and a SHA-256 provenance manifest from footage you are authorised to use:\n\n```bash\ncrickvision-sample-frames --input path/to/match.mp4 --output-dir datasets/working/match-001 --every-seconds 1 --video-id match-001 --rights-status licensed\n```\n\nThe output directory must be empty. The sampler writes JPEGs and `frames.jsonl`; the rights status is user-supplied metadata, not a legal verification. See [frame sampling and dataset preparation](docs/FRAME_SAMPLING.md) and [sample manifest validation](docs/VALIDATE_SAMPLES.md).\n\n## Quick start
+## Prepare frames for manual annotation
+
+Extract timestamped frames and a SHA-256 provenance manifest from footage you are authorised to use:
+
+```bash
+crickvision-sample-frames --input path/to/match.mp4 --output-dir datasets/working/match-001 --every-seconds 1 --video-id match-001 --rights-status licensed
+```
+
+The output directory must be empty. The sampler writes JPEGs and `frames.jsonl`; the rights status is user-supplied metadata, not a legal verification. See [frame sampling and dataset preparation](docs/FRAME_SAMPLING.md) and [sample manifest validation](docs/VALIDATE_SAMPLES.md).
+
+## Quick start
 
 ### 1. Requirements
 
