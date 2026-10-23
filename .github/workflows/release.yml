@@ -1,6 +1,8 @@
 name: Build release artifacts
 
 on:
+  pull_request:
+    branches: [main]
   release:
     types: [published]
 permissions:
