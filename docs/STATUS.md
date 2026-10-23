@@ -11,9 +11,11 @@ Package version: 0.3.0
 - Dataset-manifest validation including duplicate clip IDs, clip-time checks, and match-level split leakage checks.
 - Provenance-aware video frame sampler: configurable time-interval extraction, JPEG frames, source SHA-256, decoder timestamp/frame index, dimensions, user-supplied rights status, and JSONL manifest. The tool does not verify legal rights or label objects.
 - Sample-manifest validator: checks schema, source hashes, duplicate frames/paths, timestamps, path traversal, image existence/decodability/dimensions, and rights metadata; optional source-video hash verification.
+- Training-manifest preflight audit (`crickvision-audit-dataset`): validates JSONL structure, safe image paths, duplicate images, match-disjoint splits, decoded image bounds, box geometry, and rights metadata warnings/errors.
 - JSONL frame-level detection benchmark with reviewed empty-frame support and CSV export.
 - Local single-user Streamlit dashboard.
 - Unit tests, synthetic CLI integration test, CI matrix, Ruff checks, contributor/security templates, model card, data policy, annotation guide, release checklist, and MIT licence for original source code.
+- Release workflow builds wheel/source distributions, smoke-tests installed CLIs, and generates a CycloneDX environment SBOM as a release artifact. SBOM generation does not replace human review of licences or dependency advisories.
 
 ## Not yet implemented or verified
 
@@ -22,9 +24,9 @@ Package version: 0.3.0
 - No delivery/event inference, automatic pitch/landmark detector, role classifier, or cross-shot identity re-identification.
 - No track-level team aggregation or manual correction UI.
 - No measured benchmark on real cricket footage; synthetic tests only test software behavior.
-- CI passed on Python 3.10, 3.11, and 3.12 for frame-sampler PR head 7c9e975411151508e239860c3b7e6ad670f3f551 ([run 39995320481](https://github.com/kaustubhdua/CrickVision-/actions/runs/39995320481)) and sampled-manifest-validator PR head 345108f8182c3e12c7affd0ac5a6554487b41b37 ([run 39995790259](https://github.com/kaustubhdua/CrickVision-/actions/runs/39995790259)). These validate lint, compilation, pytest and CLI help smoke checks for those PR commits. A fresh post-merge main-branch run is separate evidence and should be checked before the next release.
+- CI passed on Python 3.10, 3.11, and 3.12 for the training-manifest audit PR ([run 40026125937](https://github.com/kaustubhdua/CrickVision-/actions/runs/40026125937)); the release build, installed-wheel CLI checks, and CycloneDX SBOM generation passed ([run 40026125916](https://github.com/kaustubhdua/CrickVision-/actions/runs/40026125916)). The post-merge main-branch CI run is queued and must be verified separately.
 - No full end-to-end run has been verified against a rights-cleared real cricket clip.
-- Third-party model/data/footage licence audit and a software bill of materials remain release gates.
+- Third-party model/data/footage licence audit and human review of the generated software bill of materials remain release gates.
 
 ## Recommended next actions
 
@@ -34,6 +36,6 @@ Package version: 0.3.0
 4. Fine-tune a person detector only after confirming data and pretrained-weight terms.
 5. Create a separate ball annotation/benchmark effort before adding a ball model.
 6. Add tracking, calibration, team and event metrics only when corresponding ground truth exists.
-7. Generate a software bill of materials and complete the model/data/footage licence audit before release.
+7. Review the generated CycloneDX SBOM and complete the model/data/footage licence audit before release.
 
 Do not represent the repository as a production cricket analytics system until the release checklist has evidence for the relevant features.
