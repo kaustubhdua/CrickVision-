@@ -36,4 +36,5 @@ jobs:
       - run: crickvision-export --help
       - run: crickvision-train-detector --help
       - run: crickvision-sample-frames --help
+      - run: crickvision-validate-samples --help
       - run: python -m crickvision.cli --help
