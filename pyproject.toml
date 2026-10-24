@@ -25,6 +25,7 @@ crickvision-train-detector = "crickvision.train_detector:main"
 crickvision-sample-frames = "crickvision.sample_frames:main"
 crickvision-validate-samples = "crickvision.validate_sample_manifest:main"
 crickvision-audit-dataset = "crickvision.audit_training_manifest:main"
+crickvision-research = "crickvision.research:main"
 
 [tool.setuptools.packages.find]
 include = ["crickvision*"]
