@@ -1,0 +1,29 @@
+name: CrickVision Resource Discovery
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 8 * * 1"
+permissions:
+  contents: read
+concurrency:
+  group: crickvision-resource-discovery
+  cancel-in-progress: true
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Discover public dataset, model, and repository metadata
+        run: python -m crickvision.research --limit 15 --json > resource-scout.json
+      - name: Upload discovery report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crickvision-resource-scout
+          path: resource-scout.json
+          if-no-files-found: warn
+          retention-days: 14
