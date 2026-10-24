@@ -30,8 +30,24 @@ CrickVision is a local-first project to detect and track cricket players, classi
 - Opt-in Hough-circle ball-like candidate proposals and nearest-neighbour candidate tracklets, explicitly marked unverified.
 - Local inference with no hosted AI API key; the first run may download pretrained weights unless cached.
 - A fine-tuning starter workflow for person boxes, custom checkpoint loading, benchmark reports, and CSV exports.
+- Public metadata discovery for candidate cricket datasets, models and reference repositories with no API key.
+- A scheduled GitHub Actions workflow that creates a resource discovery report artifact every Monday and can also be run manually.
+- A synthetic end-to-end pipeline test that verifies annotated MP4 and JSONL output without downloading model weights or using match footage.
 
 The baseline detects the generic COCO `person` class. Cricket-specific accuracy has not been established.
+
+## Discover open-source resources
+
+Run the metadata scout:
+
+```bash
+crickvision-research
+crickvision-research --limit 20 --json > resource-scout.json
+```
+
+The local Streamlit dashboard also offers a **Discover open-source datasets, models and reference projects** panel. The scout queries public Hugging Face and GitHub metadata and continues if one source is unavailable. It does not download or execute third-party assets. Review licence terms, dataset labels, model provenance, and underlying footage rights before using any result. Details: [Online resource discovery](docs/ONLINE_RESOURCE_DISCOVERY.md).
+
+The scheduled report is available from the GitHub Actions run's artifact section: [Resource discovery workflow](.github/workflows/resource-discovery.yml).
 
 ## Prepare frames for manual annotation
 
@@ -41,317 +57,11 @@ Extract timestamped frames and a SHA-256 provenance manifest from footage you ar
 crickvision-sample-frames --input path/to/match.mp4 --output-dir datasets/working/match-001 --every-seconds 1 --video-id match-001 --rights-status licensed
 ```
 
-The output directory must be empty. The sampler writes JPEGs and `frames.jsonl`; the rights status is user-supplied metadata, not a legal verification. See [frame sampling and dataset preparation](docs/FRAME_SAMPLING.md) and [sample manifest validation](docs/VALIDATE_SAMPLES.md).
-
-## Quick start
-
-### 1. Requirements
-
-- Python 3.10 or 3.11 recommended
-- FFmpeg is useful for converting unusual video formats (optional for OpenCV-readable files)
-- A CPU works; inference may be slow on long or high-resolution videos
-- Internet access may be needed on first run to download Torchvision weights
-
-### 2. Create an environment
-
-```bash
-git clone https://github.com/kaustubhdua/CrickVision-.git
-cd CrickVision-
-python -m venv .venv
-# Windows PowerShell:
-.venv\\Scripts\\Activate.ps1
-# macOS/Linux:
-source .venv/bin/activate
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-```
-
-### 3. Run the baseline
-
-```bash
-python -m crickvision.cli --input path/to/match.mp4 --output runs/match_annotated.mp4
-```
-
-Optional arguments:
-
-```bash
-python -m crickvision.cli --input match.mp4 --output runs/annotated.mp4 \
-  --detections runs/detections.jsonl --threshold 0.65 --every-n-frames 2
-```
-
-- `--threshold`: minimum person confidence from 0 to 1 (default: 0.60).
-- `--every-n-frames`: run detection on every Nth frame (default: 1). Skipped frames are not interpolated.
-- `--detections`: JSON Lines output path (default: alongside the annotated video as `<output>.jsonl`).
-- `--device`: `auto`, `cpu`, or `cuda` (default: `auto`; CUDA requires a compatible PyTorch installation).
-
-The output video shows detections with experimental, temporary IoU track IDs unless `--no-tracking` is passed. IDs can switch under occlusion, camera movement, and missed detections; they are not player identities.
-
-Optional team-colour hints can be enabled with a user-created JSON config. HSV ranges must be tuned for the source video and are **not** a reliable learned team classifier:
-
-```json
-{
-  "teams": [
-    {"name": "Team A", "hsv_lower": [90, 70, 40], "hsv_upper": [130, 255, 255]},
-    {"name": "Team B", "hsv_lower": [0, 80, 60], "hsv_upper": [12, 255, 255]}
-  ]
-}
-```
-
-Run with `--team-colors configs/team-colors.json`. Each detection JSONL record then includes `team` and `team_colour_fraction`; ambiguous or weak colour evidence is labelled `Unknown`. The HSV hue channel uses OpenCV's 0–179 range. Do not use these labels as official team identity without manual review.
-
-
-### Optional manual field calibration
-
-If you have at least five corresponding points from a fixed camera view on the same ground plane, create a calibration config based on [the example](configs/calibration.example.json), replacing the example coordinates with measured correspondences. Ground coordinates can use any consistent unit; the error threshold uses those same units.
-
-```bash
-python -m crickvision.cli --input match.mp4 --output runs/calibrated.mp4 --calibration configs/calibration.json
-```
-
-When calibration passes its reprojection-error threshold, JSONL detections include `ground_xy` for the bottom-centre of each person box. This is a manual planar estimate, not automatic pitch detection or 3D reconstruction. Do not use it for airborne ball positions or views where the ground plane/camera calibration is invalid.
-
-
-### Experimental ball-candidate mode
-
-```bash
-python -m crickvision.cli --input match.mp4 --output runs/candidates.mp4 --ball-candidates --ball-min-radius 1 --ball-max-radius 8
-```
-
-This optional mode uses Hough circles to propose small circular image regions and links nearby proposals into short tracklets. It draws candidate trails and writes JSONL rows with `status: "unverified_candidate"`. Bright objects, highlights, graphics, and noise can all trigger false positives; the score is a local-contrast ranking heuristic, not a probability. These paths are not reliable ball identities or physical trajectories.
-
-
-### Audit training labels before fine-tuning
-
-Run the preflight audit to check JSONL structure, safe image paths, decoded images, bounding-box bounds, duplicate paths, match-disjoint splits and rights metadata:
-
-```bash
-crickvision-audit-dataset datasets/annotations/person-boxes.jsonl
-```
-
-See [training-manifest audit details](docs/TRAINING_MANIFEST_AUDIT.md). This validates data structure; it does not verify annotation correctness or legal permission.
-
-### Fine-tune a person detector
-
-Once you have a rights-cleared, manually labelled image dataset, prepare a JSONL manifest with one row per image:
-
-```json
-{"image_path":"frames/train-001.jpg","match_id":"match-001","split":"train","boxes_xyxy":[[40,25,95,240]]}
-{"image_path":"frames/validation-001.jpg","match_id":"match-002","split":"validation","boxes_xyxy":[]}
-```
-
-Paths are relative to the manifest. Each train/validation/test row must include match_id, and all rows for one match must use the same split. Then fine-tune the person detector and use the resulting local checkpoint:
-
-```bash
-crickvision-train-detector --manifest datasets/annotations/person-boxes.jsonl --output models/person-finetuned.pt --epochs 5
-python -m crickvision.cli --input match.mp4 --output runs/fine-tuned.mp4 --weights models/person-finetuned.pt
-```
-
-This training workflow learns the single person class; it does not train a ball detector or infer cricket events. Validation loss is only a training diagnostic. Evaluate the selected checkpoint on a separate held-out match before reporting performance. The initial Torchvision weights may be downloaded when training starts.
-
-## Architecture roadmap
-
-### Phase 0 — Foundations and reproducibility
-- [x] Create repository structure and project scope.
-- [x] Add generic pretrained person-detection baseline and video CLI.
-- [x] Export timestamped detections as JSONL.
-- [x] Add automated unit tests and CI configuration (green Python 3.10–3.12 CI verified on commit `935afeb3feade57208c9effbc4159e8e2b26c44b`).
-- [ ] Add dependency lockfile, trained-model provenance, and a complete software bill of materials.
-- [ ] Establish a small, legally usable, manually labelled cricket benchmark.
-
-### Phase 1 — Cricket video baseline
-- [ ] Audit cricket-specific datasets and annotation formats.
-- [x] Build a basic video manifest validator (source, match/clip ID, rights status, split); timestamp/resolution enrichment remains future work.
-- [ ] Evaluate person recall separately for wide shots, pitch views, close-ups, day/night, and small distant players.
-- [x] Add a heuristic shot-boundary detector; shot/view labels and benchmark validation remain open.
-- [x] Add a baseline person-detector fine-tuning command and checkpoint loading.
-- [ ] Add model configuration and structured logs.
-- **Exit gate:** a reproducible benchmark report on held-out matches; no performance claims without measured results.
-
-### Phase 2 — Multi-object player tracking
-- [x] Add a lightweight greedy IoU tracking baseline; stronger MOT adapters remain open after licence/dependency review.
-- [x] Reset the baseline track state when the shot-cut heuristic flags a camera cut; validate cut/ID behaviour on labelled footage.
-- [ ] Record track age, confidence, missing detections, and fragmentation.
-- [ ] Evaluate HOTA, IDF1, ID switches, and fragmentation against labelled clips.
-- [x] Export JSONL detections and CSV summaries; track visualisation and track metrics remain open.
-- **Exit gate:** documented tracking results across multiple broadcast views.
-
-### Phase 3 — Team and official classification
-- [x] Add a configurable HSV torso-colour heuristic; track-level aggregation and evaluation remain open.
-- [x] Support user-configured HSV team-colour hints and Unknown results; Official/player roles remain unimplemented.
-- [ ] Aggregate predictions over tracklets rather than single frames.
-- [ ] Evaluate similar kits, white-clothing Test cricket, helmets/pads, lighting changes, and officials.
-- [ ] Add confidence thresholds and manual correction.
-- **Exit gate:** publish accuracy, sample size, confusion matrix, and unknown rate for each supported condition.
-
-### Phase 4 — Cricket field geometry
-- [ ] Define cricket-specific landmarks: pitch corners, creases, wickets, boundary cues.
-- [ ] Annotate and evaluate landmark detection.
-- [x] Estimate a manual planar homography from user-provided point correspondences and reject calibration above a configured reprojection-error threshold.
-- [ ] Automate landmark detection and validate ground-position error on held-out calibrated shots.
-- [x] Project person-box footpoints into user-defined ground-plane coordinates when manual calibration is valid; field-map visualisation remains open.
-- [ ] Mark measurements unavailable when geometry is uncertain; do not infer 3D positions from a planar homography.
-- **Exit gate:** measured landmark and ground-position error on held-out calibrated shots.
-
-### Phase 5 — Ball detection and trajectory research
-- [x] Add optional Hough-circle ball-like candidate proposals and short candidate tracklets as an annotation aid.
-- [ ] Build a ball visibility/annotation protocol; label only visually identifiable ball positions.
-- [ ] Benchmark small-object detectors on full frames and high-resolution crops.
-- [ ] Add temporal association, uncertainty, missing-observation handling, and outlier rejection.
-- [ ] Evaluate trajectory coverage and position error by camera view, resolution, blur, and occlusion.
-- [ ] Investigate release, bounce, bat contact, and boundary-crossing candidates.
-- **Exit gate:** demonstrate trajectory coverage and error on a labelled dataset before claiming delivery-level accuracy.
-
-### Phase 6 — Cricket event intelligence
-- [ ] Build temporal event records with source timestamps and confidence.
-- [ ] Infer possible bowler/batter/wicketkeeper roles using temporal context and spatial evidence.
-- [ ] Investigate delivery phases, shot direction/zones, fielding actions, and candidate wickets.
-- [ ] Separate observed facts from inferred events; allow unknown/ambiguous states.
-- [ ] Validate event precision, recall, F1, and timestamp error against independent annotations.
-- **Exit gate:** event-level benchmark; no automatic scoring claims until independently validated.
-
-### Phase 7 — Analytics application
-- [x] Add an initial local dashboard for video upload, processing, and downloads; playback, field map, event timeline and robust job management remain open.
-- [ ] Add side-by-side original/annotated video and track inspection.
-- [x] Export JSONL observations, CSV tables, annotated MP4, and JSON benchmark reports.
-- [ ] Add job cancellation, resumable processing, caching, and bounded memory use.
-- [ ] Keep inference separate from UI and provide a command-line workflow.
-- **Exit gate:** end-to-end local workflow with tests and documented limitations.
-
-### Phase 8 — Performance, release, and community
-- [ ] Profile CPU throughput and peak memory on documented hardware.
-- [ ] Evaluate optional ONNX Runtime/GPU acceleration without changing output contracts.
-- [x] Add CI configuration, Ruff checks, issue templates, contributor guidance, release checklist, and changelog; green CI passed for commit `935afeb3feade57208c9effbc4159e8e2b26c44b`; future changes still require a fresh run.
-- [ ] Add static type checking and a complete release/publishing workflow.
-- [x] Publish a baseline model card, data policy, annotation guidelines, and third-party notices; trained-checkpoint hashes and full SBOM remain pending.
-- [x] Add a benchmark runner and synthetic regression fixtures; a rights-cleared real-cricket benchmark remains pending.
-- [ ] Complete security/privacy review and audit all third-party, model, dataset, and footage terms before distributing models or data.
-
-## Target architecture
-
-```text
-Video input
-  └─ Decode + timestamps
-      └─ Shot boundaries / camera-view classification
-          ├─ Person detector ──> Player tracker ──> Team/role inference
-          ├─ Ball detector ────> Trajectory estimation ──> Event hypotheses
-          └─ Pitch landmarks ──> Calibration ──> Field coordinates
-                  └─ Temporal fusion + confidence
-                      └─ Annotated video / JSONL / CSV / dashboard
-```
-
-Modules should use explicit data contracts and keep image coordinates, ground coordinates, and timestamps distinct. A calibration or tracking failure should be surfaced rather than silently converted into a confident statistic.
-
-## Suggested repository layout
-
-```text
-crickvision/
-├── crickvision/
-│   ├── __init__.py
-│   ├── detector.py
-│   └── cli.py
-├── tests/
-├── configs/
-├── datasets/
-│   ├── manifests/
-│   └── annotation_guidelines/
-├── benchmarks/
-├── runs/                 # generated outputs; not committed
-├── requirements.txt
-├── .gitignore
-├── README.md
-└── THIRD_PARTY_NOTICES.md
-```
-
-## Dataset and research principles
-
-Potential starting points include cricket broadcast image datasets such as [Cric-360](https://huggingface.co/datasets/sarimshahzad/Cric-360), subject to auditing the exact dataset subset, annotations, access conditions, underlying footage rights, and redistribution terms. Still frames alone do not provide persistent identities or ball trajectories.
-
-Recommended annotation workflow:
-1. Define classes and occlusion/visibility rules before labelling.
-2. Maintain a source manifest and provenance for every clip.
-3. Split by entire match or broadcast source, not neighbouring frames.
-4. Keep real and synthetic data results separate.
-5. Use active learning to prioritise hard examples.
-6. Publish dataset cards and never commit footage without redistribution permission.
-
-## Evaluation policy
-
-| Capability | Metrics |
-|---|---|
-| Detection | Precision, recall, AP/mAP, size-specific recall |
-| Tracking | HOTA, IDF1, ID switches, fragmentation |
-| Team classification | Accuracy, confusion matrix, unknown rate |
-| Calibration | Landmark error and ground-position error |
-| Ball trajectory | Detection recall, trajectory coverage, position error |
-| Event detection | Precision, recall, F1, timestamp error |
-| Runtime | FPS, latency, peak memory, hardware/software versions |
-
-All results should include dataset size, match-level splits, model/checkpoint hash, configuration, hardware, and limitations. Do not publish target values as achieved results.
-
-## Licensing and model provenance
-
-- The root LICENSE applies MIT to original CrickVision code and project-authored documentation. Third-party code, pretrained weights, datasets, and broadcast footage retain their own terms.
-- Torchvision's code licence and the selected pretrained weights' terms are distinct questions; review the applicable PyTorch/Torchvision and COCO asset terms before redistribution.
-- Every future detector/tracker, checkpoint, dataset subset, and third-party asset needs its own licence/provenance record.
-- Do not commit copyrighted broadcast footage or model weights unless their terms permit it.
-- This repository does not bundle training footage or claim a custom-trained cricket model.
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for setup and contribution rules. Never upload private or unlicensed footage. Security reporting guidance is in [.github/SECURITY.md](.github/SECURITY.md).
-
-## Disclaimer
-
-CrickVision is an experimental research/development project. Outputs may be incorrect, incomplete, or unavailable on difficult broadcast views. It is not an official scoring system or a substitute for human match officials.
-
-## Acknowledgements
-
-CrickVision builds on the open-source computer-vision ecosystem. All third-party projects, datasets, and model assets must be credited according to their individual terms.
-
-
-## Project status
-
-See [docs/STATUS.md](docs/STATUS.md) for implemented capabilities, unverified areas, and the next release gates.
-
-## Deep research and product specification
-
-The expanded research document defines the product scope, module requirements, architecture, result schemas, dataset strategy, evaluation metrics, licensing risks, and implementation priorities. The repository also includes a [model card](docs/model-card.md), [data policy](docs/data-policy.md), and [annotation guidelines](datasets/annotation_guidelines/README.md):
-
-- [Read the research and product specification](docs/research-and-product-spec.md)
-
-It distinguishes the current generic person-detection baseline from planned features and sets release gates so we do not claim tracking, team classification, ball trajectories, or accuracy before those capabilities are implemented and benchmarked.
-
-
-## Experimental analysis modules (v0.3)
-
-The repository now also includes reusable, explicitly experimental modules:
-
-- `crickvision.tracker.IoUTracker`: greedy intersection-over-union association with track ageing and explicit reset at shot boundaries. IDs are not reliable across occlusion or camera cuts; this is a baseline, not a production MOT algorithm.
-- `crickvision.shot.ShotBoundaryDetector`: frame-difference cut heuristic. Fast motion, flashes and replays can cause false positives.
-- `crickvision.team.classify_team_colour`: configurable HSV kit-colour hint from a torso crop. Requires user-defined HSV ranges and can return `Unknown`; it is not a learned classifier.
-
-These APIs are intentionally modular and are not yet presented as a validated end-to-end match analytics system. The current default video CLI combines person detection, a shot-cut heuristic, and experimental IoU tracking. Team-colour hints can be integrated with `--team-colors`; the output remains heuristic and unvalidated. See tests for deterministic synthetic examples.
-
-### Development and tests
-
-```bash
-python -m pip install -e ".[dev]"
-python -m compileall -q crickvision tests
-python -m pytest -q
-```
-
-GitHub Actions runs the test suite on Python 3.10, 3.11 and 3.12. CI results must be checked on the repository before treating the build as verified.
-
-### Current implementation boundary
-
-Implemented: generic person detector, fine-tuning starter, custom checkpoint loading, video annotation CLI, schema-versioned JSONL detections, shot-aware IoU tracking, shot-cut heuristic, configurable HSV team-colour hint, manual planar calibration, experimental ball-candidate tracklets, local upload dashboard, match-split manifest validation, frame-level benchmark runner, CSV export, tests, and CI configuration.
-
-Still not complete/validated: green CI run and full real-video smoke test; cricket-specific model training on rights-cleared labelled data; a reliable ball detector and trajectory reconstruction; automatic landmark detection and validated field mapping; role/event inference; track-level team classification; a legally usable labelled benchmark with measured results; complete third-party licence audit and software bill of materials. No accuracy or match-scoring claims are made.
-
+The output directory must be empty. The sampler writes JPEGs and `frames.jsonl`; the rights field is a declaration supplied by the user, not an automated legal determination. Validate the sample manifest and review the underlying terms before training.
 
 ## Integrated shot-aware analysis
 
-The video CLI now combines person detection with the experimental IoU tracker and frame-difference shot-boundary heuristic. Track IDs are reset when a cut is flagged. The JSONL stream includes `person_detection` and `shot_boundary` record types. Since cut detection is heuristic, inspect results manually and tune `--shot-threshold` for the video source.
+The video CLI combines person detection with the experimental IoU tracker and frame-difference shot-boundary heuristic. Track IDs are reset when a cut is flagged. The JSONL stream includes `person_detection` and `shot_boundary` record types. Since cut detection is heuristic, inspect results manually and tune `--shot-threshold` for the video source.
 
 ```bash
 python -m crickvision.cli --input match.mp4 --output runs/annotated.mp4 --every-n-frames 2
@@ -370,16 +80,18 @@ The dashboard runs processing as a local subprocess. It is intended for a single
 
 For the current testing instructions and release gates, see [docs/TESTING.md](docs/TESTING.md). JSONL record contracts and benchmark annotation examples are documented in [docs/SCHEMA.md](docs/SCHEMA.md); dataset source suitability and licence gates are in [docs/DATASET_AUDIT.md](docs/DATASET_AUDIT.md).
 
-
 ## Dataset governance and evaluation utilities
 
 Before building a benchmark, define a JSONL manifest and validate it:
 
 ```bash
 crickvision-manifest datasets/manifests/manifest.jsonl
-# or: python -m crickvision.manifest datasets/manifests/manifest.jsonl
 ```
 
 The validator checks required provenance fields, duplicate clip IDs, supported split labels and rights-status warnings. It cannot grant permission to use a dataset; verify source terms independently. See [manifest guidance](datasets/manifests/README.md).
 
-A small IoU-matching precision/recall/F1 helper is available in `crickvision.metrics` for labelled frame-level detections. It is not a substitute for COCO AP/mAP or full MOT metrics. Do not report benchmark scores until labels, match-level splits, and evaluation procedures are independently reviewed.
+A small IoU-matching precision/recall/F1 helper is available for labelled frame-level detections. It is not a substitute for COCO AP/mAP or full MOT metrics. Do not report benchmark scores until labels, match-level splits, and evaluation procedures are independently reviewed.
+
+## Product limitations
+
+This is a local research toolkit, not yet a production-grade hosted website or validated cricket analytics service. The default detector is generic, ball candidates are experimental, and tracking IDs can switch. A complete accuracy claim requires a compatible rights-cleared labelled dataset, a cricket-specific trained model, standard held-out evaluation, and real-video acceptance evidence. See [release checklist](docs/RELEASE_CHECKLIST.md) and [status report](docs/STATUS.md).
