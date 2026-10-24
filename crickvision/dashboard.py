@@ -1,9 +1,7 @@
-"""Local, single-user Streamlit interface for CrickVision video processing.
-
-Do not expose this app to untrusted users: uploaded files consume local resources.
-"""
+"""Local, single-user Streamlit interface for CrickVision video processing and research."""
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 import tempfile
@@ -13,13 +11,59 @@ import streamlit as st
 
 st.set_page_config(page_title="CrickVision", page_icon="🏏", layout="wide")
 st.title("🏏 CrickVision")
-st.caption("Experimental local cricket-video analysis · person detections + heuristic shot cuts")
+st.caption("Local cricket-video analysis and open-source resource discovery")
 st.warning(
     "Research prototype only. Track IDs can switch, shot cuts can be false positives, "
-    "and the detector is trained on generic COCO images—not cricket footage. "
+    "and the default detector is trained on generic COCO images—not cricket footage. "
     "Run locally for a single trusted user; do not expose this dashboard publicly."
 )
 
+with st.expander("Discover open-source datasets, models and reference projects", expanded=False):
+    st.write(
+        "Search public metadata APIs without API keys. This does not download or execute "
+        "third-party assets; check the licence, annotations and source-footage rights yourself."
+    )
+    resource_limit = st.slider("Maximum results per source", min_value=1, max_value=30, value=10)
+    if st.button("Search public resources"):
+        with st.spinner("Querying public dataset, model and repository metadata…"):
+            try:
+                result = subprocess.run(
+                    [sys.executable, "-m", "crickvision.research", "--limit", str(resource_limit), "--json"],
+                    capture_output=True, text=True, timeout=35, check=False,
+                )
+            except subprocess.TimeoutExpired:
+                st.error("Resource search timed out. Try again later.")
+            else:
+                if result.returncode not in (0, 2):
+                    st.error("Resource search could not produce a report.")
+                    st.code((result.stderr or result.stdout or "No diagnostic output")[-6000:])
+                else:
+                    try:
+                        report = json.loads(result.stdout)
+                    except json.JSONDecodeError:
+                        st.error("Resource search returned invalid JSON.")
+                        st.code(result.stdout[-6000:])
+                    else:
+                        st.caption(
+                            f"Source status: {report.get('status')} · "
+                            f"{report.get('healthy_sources', 0)} of "
+                            f"{len(report.get('sources', {}))} sources responded"
+                        )
+                        st.info(report.get("safety_note", "Verify permissions before use."))
+                        for source_name, source in report.get("sources", {}).items():
+                            with st.expander(f"{source_name.title()} · {source.get('count', 0)} results"):
+                                if source.get("error"):
+                                    st.warning(source["error"])
+                                for item in source.get("items", []):
+                                    st.markdown(f"**[{item.get('id', 'Unnamed resource')}]({item.get('url', '')})**")
+                                    licence = item.get("license_tag") or "Licence not declared in API metadata"
+                                    st.caption(f"Licence metadata: {licence}")
+                                    if item.get("description"):
+                                        st.write(item["description"])
+                                    st.caption(item.get("warning", "Verify provenance and terms before use."))
+
+st.divider()
+st.subheader("Analyse a video")
 uploaded = st.file_uploader("Choose a video", type=["mp4", "mov", "avi", "mkv", "webm"])
 col1, col2, col3 = st.columns(3)
 with col1:
@@ -82,4 +126,4 @@ if uploaded is not None:
                     file_name="crickvision_detections.jsonl", mime="application/x-ndjson",
                 )
 else:
-    st.info("Upload a local video to begin. No file is uploaded to a hosted service by this app.")
+    st.info("Upload a local video to begin. No video is uploaded to a hosted service by this app.")

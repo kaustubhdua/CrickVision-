@@ -34,6 +34,7 @@ jobs:
       - run: crickvision-sample-frames --help
       - run: crickvision-validate-samples --help
       - run: crickvision-audit-dataset --help
+      - run: crickvision-research --help
       - name: Generate CycloneDX environment SBOM
         run: cyclonedx-py environment --output-format JSON --output-file dist/crickvision-sbom.json
       - uses: actions/upload-artifact@v4
