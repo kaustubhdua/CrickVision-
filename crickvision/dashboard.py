@@ -8,6 +8,9 @@ import tempfile
 from pathlib import Path
 
 import streamlit as st
+import cv2
+
+MAX_UPLOAD_BYTES = 150 * 1024 * 1024
 
 st.set_page_config(page_title="CrickVision", page_icon="🏏", layout="wide")
 st.title("🏏 CrickVision")
@@ -75,8 +78,11 @@ with col3:
 device = st.selectbox("Inference device", ["auto", "cpu", "cuda"], index=0)
 tracking = st.checkbox("Enable experimental IoU tracking", value=True)
 
-if uploaded is not None:
+if uploaded is not None and uploaded.size > MAX_UPLOAD_BYTES:
+    st.error("This file exceeds the 150 MB limit. Trim the clip locally and try again.")
+elif uploaded is not None:
     st.video(uploaded)
+    st.caption(f"Selected file: {Path(uploaded.name).name} · {uploaded.size / (1024 * 1024):.1f} MB")
     if st.button("Analyse video", type="primary"):
         with tempfile.TemporaryDirectory(prefix="crickvision-") as temp_dir:
             root = Path(temp_dir)
@@ -84,6 +90,23 @@ if uploaded is not None:
             output_path = root / "annotated.mp4"
             jsonl_path = root / "detections.jsonl"
             input_path.write_bytes(uploaded.getvalue())
+            # Validate actual media decoding; a supported filename extension alone is insufficient.
+            capture = cv2.VideoCapture(str(input_path))
+            is_open = capture.isOpened()
+            frame_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT)) if is_open else 0
+            width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH)) if is_open else 0
+            height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT)) if is_open else 0
+            fps = float(capture.get(cv2.CAP_PROP_FPS)) if is_open else 0.0
+            capture.release()
+            if not is_open or frame_count < 1 or width < 1 or height < 1:
+                st.error("This file could not be decoded as video by the installed OpenCV build.")
+                st.info("Try exporting a short H.264 MP4 locally. The file has not been sent to a hosted service.")
+                st.stop()
+            info_cols = st.columns(4)
+            info_cols[0].metric("Resolution", f"{width} × {height}")
+            info_cols[1].metric("Frames", f"{frame_count:,}")
+            info_cols[2].metric("Frame rate", f"{fps:.2f} fps" if fps > 0 else "Unknown")
+            info_cols[3].metric("Duration", f"{frame_count / fps:.1f} s" if fps > 0 else "Unknown")
             command = [
                 sys.executable, "-m", "crickvision.cli",
                 "--input", str(input_path),
@@ -113,7 +136,23 @@ if uploaded is not None:
                 st.error("The process exited without producing both expected output files.")
                 st.code(result.stdout[-6000:])
             else:
-                st.success("Processing finished.")
+                records = []
+                malformed_lines = 0
+                with jsonl_path.open("r", encoding="utf-8") as stream:
+                    for line in stream:
+                        if not line.strip():
+                            continue
+                        try:
+                            records.append(json.loads(line))
+                        except json.JSONDecodeError:
+                            malformed_lines += 1
+                st.success("Processing finished. Review the outputs before using them for analysis.")
+                result_cols = st.columns(3)
+                result_cols[0].metric("Output video", f"{output_path.stat().st_size / (1024 * 1024):.1f} MB")
+                result_cols[1].metric("JSONL records", f"{len(records):,}")
+                result_cols[2].metric("Malformed JSONL lines", str(malformed_lines))
+                if malformed_lines:
+                    st.warning("Some JSONL lines could not be parsed. Do not treat this export as valid until investigated.")
                 st.code(result.stdout[-6000:])
                 st.subheader("Annotated video")
                 st.video(output_path.read_bytes())

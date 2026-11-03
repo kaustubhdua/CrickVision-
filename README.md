@@ -1,7 +1,7 @@
 # 🏏 CrickVision
 
 **A local-first computer-vision toolkit for cricket video intelligence.**  
-Version 0.3.0 · [Changelog](CHANGELOG.md) · [Release checklist](docs/RELEASE_CHECKLIST.md)  
+Version 0.3.0 · [Changelog](CHANGELOG.md) · [Release checklist](docs/RELEASE_CHECKLIST.md) · [Production completion plan](docs/PRODUCTION_COMPLETION_PLAN.md)  
 *Turn broadcast pixels into structured cricket insights.*
 
 CrickVision is a local-first project to detect and track cricket players, classify teams, map field positions, and progressively analyse the ball and delivery events from video. The long-term goal is a reproducible, well-tested toolkit for developers, researchers, coaches, and cricket analysts.
