@@ -39,6 +39,7 @@ jobs:
       - run: crickvision-validate-samples --help
       - run: crickvision-audit-dataset --help
       - run: crickvision-research --help
+      - run: crickvision-record-run --help
       - run: python -m crickvision.cli --help
 
   sbom:
