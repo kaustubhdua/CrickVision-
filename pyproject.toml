@@ -26,6 +26,7 @@ crickvision-sample-frames = "crickvision.sample_frames:main"
 crickvision-validate-samples = "crickvision.validate_sample_manifest:main"
 crickvision-audit-dataset = "crickvision.audit_training_manifest:main"
 crickvision-research = "crickvision.research:main"
+crickvision-record-run = "crickvision.provenance:main"
 
 [tool.setuptools.packages.find]
 include = ["crickvision*"]
