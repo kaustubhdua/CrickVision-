@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+from datetime import datetime, timezone
 import json
 import platform
 import sys
@@ -83,9 +84,7 @@ def build_run_record(
     record: dict[str, Any] = {
         "schema_version": 1,
         "record_type": "crickvision_run_provenance",
-        "created_at_utc": __import__("datetime").datetime.now(
-            __import__("datetime").timezone.utc
-        ).isoformat(),
+        "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "tool": {"name": "CrickVision", "version": package_version},
         "runtime": {
             "python": sys.version.split()[0],
