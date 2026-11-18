@@ -80,6 +80,10 @@ The dashboard runs processing as a local subprocess. It is intended for a single
 
 For the current testing instructions and release gates, see [docs/TESTING.md](docs/TESTING.md). Candidate real-cricket data sources and their current rights/annotation review are documented in [docs/REAL_CRICKET_DATA_RIGHTS_REVIEW.md](docs/REAL_CRICKET_DATA_RIGHTS_REVIEW.md). JSONL record contracts and benchmark annotation examples are documented in [docs/SCHEMA.md](docs/SCHEMA.md); dataset source suitability and licence gates are in [docs/DATASET_AUDIT.md](docs/DATASET_AUDIT.md).
 
+## Reproducible run records
+
+Create a SHA-256 provenance sidecar for a completed local analysis with `crickvision-record-run`; see [run provenance](docs/RUN_PROVENANCE.md). This records artifact hashes and environment metadata, but does not verify footage rights or model accuracy.
+
 ## Dataset governance and evaluation utilities
 
 Before building a benchmark, define a JSONL manifest and validate it:
